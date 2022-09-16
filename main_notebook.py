@@ -15,37 +15,46 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from re import search
+import re
 
-
-# ## Reading 'dialog_acts.dat' into dataframe
 
 # In[2]:
 
 
-with open('dialog_acts.dat', 'r') as f:
-    data = f.readlines()
-    data = list(map(lambda x: x.rstrip("\n").split(" ", 1), data))
-    
-df = pd.DataFrame(np.array(data), columns = ['label', 'text'])
+def get_dataset(path):
+    """
+      args: dataset file path
+      return: DataFrame of dataset
+    """
+    with open(path, 'r') as f:
+        data = f.readlines()
+        data = list(map(lambda x: x.rstrip("\n").split(" ", 1), data))
+    df = pd.DataFrame(np.array(data), columns = ['label', 'text'])    
+    return df
 
 
 # In[3]:
 
 
-df.head(3)
+def preprocess(dataset):
+    """
+    Preprocesses the dataset
+    args: DataFrame dataset
+    return: dataset
+    """
+    return dataset
 
-
-# ## Pre-Processing
-# Looking for null values, irrelevant or noisy text (literally, removing 'tv_noise' and 'noise') and repeated values. Formatting labels into numbers.
 
 # In[4]:
 
 
-# transforming labels into numbers
-df['label_id'] = df['label'].factorize()[0]
-label_dict = df[['label','label_id']].drop_duplicates().set_index('label_id')
-label_dict
+def label_factorize(df):
+    """Does label factorization for a dataframe that has a column labeled 'label'"""
+    # making label dict (turning labels into numbers)
+    df['label_id'] = df['label'].factorize()[0]
+    label_dict = df[['label','label_id']].drop_duplicates().set_index('label_id')
+    
+    return label_dict
 
 
 # ## Building Baseline Systems
@@ -53,207 +62,179 @@ label_dict
 # In[5]:
 
 
-majority_class = df['label'].mode().to_string(index = False)
-print(f"Majority class is '{majority_class}' ")
+def get_majority_class():
+    majority_class = df['label'].mode().to_string(index = False)
+    print(f"Majority class is '{majority_class}' ")
+    
+    return majority_class
 
 
 # In[6]:
 
 
-def df_majority_class(dataframe):
-    """
-    Classifies dialog based on the majority class label.
-    Arguments:
-        dataframe: a pandas dataframe that contains a column named text with utterances.
-    Returns:
-        Returns a list of predictions about the label (dialog act) of the utterances.
-    """
-    predictions = []
-    for i in range(0,len(dataframe)):
-        predictions.append(majority_class)
-            
-    return predictions
-    
-def df_keyword_matching(dataframe):
-    """
-    Rule-based prediction of dialog acts based on a colletion of utterances.
-    Arguments:
-        dataframe: a pandas dataframe that contains a column named text with utterances.
-    Returns:
-        Returns a list of predictions about the label (dialog act) of the utterances.
-    """
-    predictions = []
-    for i in range(0,len(dataframe)):
-        if search(r'\bhow about\b|\bwhat about\b|\banything else\b|\bare there\b|\bis there\b|\bwhat else\b', df.loc[i,'text']):
-            predictions.append('reqalts')
-        elif search(r'\byes\b|\byeah\b|\bcorrect\b',df.loc[i,'text']):
-            predictions.append('affirm')
-        elif search(r'\bthank you\b', df.loc[i,'text']):
-            predictions.append('thankyou')
-        elif search(r'\bgoodbye\b|\bbye\b', df.loc[i,'text']):
-            predictions.append('bye')
-        elif search(r'\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b', df.loc[i,'text']):
-            predictions.append('confirm')
-        elif search(r'\bwhat is\b|\bwhats\b|\bmay i\b|\bcould i\b|\bwhat\b|\bprice range\b|\bpost code\b|\btype of\b|\baddress\b|\bphone number\b|\bcan i\b|\bcould i\b|\bcould you\b|\bdo you\b|\bi want+.address\b|\bi want+.phone\b|\bi would\b|\bwhere is\b', df.loc[i,'text']):
-            predictions.append('request')
-        elif search(r'\bno\b|\bnot\b', df.loc[i,'text']):
-            predictions.append('negate')
-        elif search(r'\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b',df.loc[i,'text']):
-            predictions.append('inform')
-        elif search(r'\bdont\b', df.loc[i,'text']):
-            predictions.append('deny')
-        elif search(r'\bhello\b', df.loc[i,'text']):
-            predictions.append('hello')
-        elif search(r'\brepeat\b', df.loc[i,'text']):
-            predictions.append('repeat')
-        elif search(r'\bmore\b', df.loc[i,'text']):
-            predictions.append('reqmore')
-        elif search(r'\bstart\b', df.loc[i,'text']):
-            predictions.append('restart')
-        elif search(r'\bokay\b|\bkay\b',df.loc[i,'text']):
-            predictions.append('ack')
-        else:
-            predictions.append('inform')
-    return predictions
+# should we remove null completely?
+keyword_dict = {
+    "inform": "\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
+    "confirm": "\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
+    "affirm": "\byes\b|\byeah\b|\bcorrect\b",
+    "request": "\bwhat is\b|\bwhats\b|\bmay i\b|\bcould i\b|\bwhat\b|\bprice range\b|\bpost code\b|\btype of\b|\baddress\b|\bphone number\b|\bcan i\b|\bcould i\b|\bcould you\b|\bdo you\b|\bi want+.address\b|\bi want+.phone\b|\bi would\b|\bwhere is\b",
+    "thankyou": "\bthank you\b",
+    "bye": "\bgoodbye\b|\bbye\b",
+    "reqalts": "\bhow about\b|\bwhat about\b|\banything else\b|\bare there\b|\bis there\b|\bwhat else\b",
+    "negate": "\bno\b|\bnot\b",
+    "hello": "\bhello\b",
+    "repeat": "\brepeat\b",
+    "ack": "\bokay\b|\bkay\b",
+    "restart": "\bstart\b",
+    "deny": "\bdont\b",
+    "reqmore": "\bmore\b",
+    "null": "_?_",
+}
 
 
 # In[7]:
 
 
+def single_keyword_matching(text):
+    """
+    Rule-based prediction of a dialog act based on a phrase.
+    args: utterance (any string)
+    returns: Returns the predicted dialog act.
+    """
+    label = "inform"
+    for key in keyword_dict:
+        if (re.search(keyword_dict[key], text)): #if we find one of our keywords on any given string
+            label = key
+            return
+    return label
+
+def df_majority_class(dataframe):
+    """
+    Classifies dialog based on the majority class label.
+    args: pandas DataFrame that contains a column named text with utterances.
+    returns: list of predictions about the label (dialog act) of the utterances.
+    """
+    predictions = []
+    for i in range(0,len(dataframe)):
+        predictions.append(majority_class)
+    return predictions
+
+
+# In[8]:
+
+
 def single_majority_class(utterance):
     """
     Classifies dialog based on the majority class label.
-    Arguments:
-        utterance: string
-    Returns:
-        Returns a list of predictions about the label (dialog act) of the utterances.
+    args: utterance (any string)
+    returns: list of predictions about the label (dialog act) of the utterances.
     """
-    
-    return majority_class        
-    
-def single_keyword_matching(utterance):
+    return majority_class      
+
+def df_keyword_matching(dataframe):
     """
-    Rule-based prediction of a dialog act based on a phrase.
-    Arguments:
-        utterance: string
-    Returns:
-        Returns the predicted dialog act.
+    Rule-based prediction of dialog acts based on a colletion of utterances.
+    args: DataFrame that contains a column named text with utterances.
+    returns: list of predictions about the label (dialog act) of the utterances.
     """
-    utterance = utterance.lower()
-    if search(r'\bhow about\b|\bwhat about\b|\banything else\b|\bare there\b|\bis there\b|\bwhat else\b', utterance):
-        return 'reqalts'
-    elif search(r'\byes\b|\byeah\b|\bcorrect\b',utterance):
-        return 'affirm'
-    elif search(r'\bthank you\b', utterance):
-        return 'thankyou'
-    elif search(r'\bgoodbye\b|\bbye\b', utterance):
-        return 'bye'
-    elif search(r'\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b', utterance):
-        return 'confirm'
-    elif search(r'\bwhat is\b|\bwhats\b|\bmay i\b|\bcould i\b|\bwhat\b|\bprice range\b|\bpost code\b|\btype of\b|\baddress\b|\bphone number\b|\bcan i\b|\bcould i\b|\bcould you\b|\bdo you\b|\bi want+.address\b|\bi want+.phone\b|\bi would\b|\bwhere is\b', utterance):
-        return 'request'
-    elif search(r'\bno\b|\bnot\b', utterance):
-        return 'negate'
-    elif search(r'\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b',utterance):
-        return 'inform'
-    elif search(r'\bdont\b', utterance):
-        return 'deny'
-    elif search(r'\bhello\b|\bhi\b|\bhey\b', utterance):
-        return 'hello'
-    elif search(r'\brepeat\b', utterance):
-        return 'repeat'
-    elif search(r'\bmore\b', utterance):
-        return 'reqmore'
-    elif search(r'\bstart\b', utterance):
-        return 'restart'
-    elif search(r'\bokay\b|\bkay\b',utterance):
-        return 'ack'
-    else:
-        return 'inform'
+    predictions = []
+    for i in range(0,len(dataframe)):
+        text = df.loc[i, 'text']
+        predictions.append(single_keyword_matching(text))
+    return predictions
 
 
 # ## Building Classifier Models
 
-# In[31]:
+# In[9]:
 
 
-from sklearn.model_selection import train_test_split
-# X - independent features (excluding target variable).
-# y - dependent variables (target we're looking to predict).
-
-X_train, X_test, y_train, y_test = train_test_split(
-    df['text'], df['label_id'], test_size=0.15, random_state=0
-)
-
-print('Training Dataset')
-print(X_train.head(2))
-print(y_train.head(2))
-print('\nTesting Dataset')
-print(X_test.head(2))
-print(y_test.head(2))
-
-
-# In[46]:
-
-
-# model specific pre-processing - tfid vectorizing 'text' column
-from sklearn.feature_extraction.text import TfidfVectorizer
-tfidf = TfidfVectorizer(sublinear_tf=True, # scale the words frequency in logarithmic scale
-                        min_df=5, # remove the words which has occurred in less than ‘min_df’ number of files
-                        ngram_range=(1, 2), # don't know what role n-grams play in vectorisation
-                        stop_words='english', # it removes stop words which are predefined in ‘english’.
-                        lowercase=True # everything to lowercase
-)
-
-X_train_tfidf = tfidf.fit_transform(X_train).toarray()
-X_test_tfidf = tfidf.transform(X_test).toarray()
-
-print(X_train[0])
-print(X_train_tfidf[0])
-
-
-# In[36]:
-
-
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-
-models = [
-    RandomForestClassifier(n_estimators=100, max_depth=5, random_state=0),
-    MultinomialNB(),
-    LogisticRegression(random_state=0, max_iter=400),
-]
-
-
-# In[41]:
-
-
-from sklearn.model_selection import cross_val_score
-
-CV = 5
-entries = []
-for model in models:
-    model_name = model.__class__.__name__
-    accuracies = cross_val_score(model, X_train_tfidf, y_train, scoring='accuracy')
-    for fold_idx, accuracy in enumerate(accuracies):
-        entries.append((model_name, fold_idx, accuracy))
+def train_model(method, df):
+    """
+    Trains any method of classifier that fits the pre-processing.
+    args: model being used (and any parameters for said model), and a dataframe
+    returns: tuple of a trained, fitted model and a NLP vectorizer/transformer
+    """
+    # X - independent features (excluding target variable).
+    # y - dependent variables (target we're looking to predict).
     
-cv_df = pd.DataFrame(entries, columns=['model_name', 'fold_idx', 'accuracy'])
+    X_train, X_test, y_train, y_test = train_test_split(
+        df['text'], df['label_id'], test_size=0.15, random_state=10
+    )
+
+    tfidf = TfidfVectorizer(
+        sublinear_tf=True, # scale the words frequency in logarithmic scale
+        min_df=5, # remove the words which has occurred in less than ‘min_df’ number of files
+        ngram_range=(1, 2), # don't know what role n-grams play in vectorisation
+        stop_words='english', # it removes stop words which are predefined in ‘english’.
+        lowercase=True # everything to lowercase
+    )
+    
+    X_train_tfidf = tfidf.fit_transform(X_train).toarray()
+    labels = label_train
+
+    model = method
+    model.fit(X_train_tfidf, y_train)
+
+    X_test_tfidf = tfidf.transform(X_test).toarray()
+    y_pred_test = model.predict(X_test_tfidf)
+
+    return (model, tfidf)
+
+# shorthands for model training
+def train_logistic_regression_model(df):
+    return train_model(LogisticRegression(random_state=0, max_iter=400), df)
+
+def train_NB_classifier_model(df):
+    return train_model(MultinomialNB(), df)
 
 
-# In[47]:
+# In[11]:
 
 
-# fitting logistic regression
-model = LogisticRegression(random_state=0, max_iter=400)
-model.fit(X_train_tfidf, y_train)
-y_pred_test = model.predict(X_test_tfidf)
+#from sklearn.model_selection import cross_val_score
 
+#CV = 5
+#entries = []
+#for model in models:
+#    model_name = model.__class__.__name__
+#    accuracies = cross_val_score(model, X_train_tfidf, y_train, scoring='accuracy')
+#    for fold_idx, accuracy in enumerate(accuracies):
+#        entries.append((model_name, fold_idx, accuracy))
+#    
+#cv_df = pd.DataFrame(entries, columns=['model_name', 'fold_idx', 'accuracy'])
+
+
+# In[12]:
+
+
+def main():
+    """Prepares the dataset, model and runs the bot"""
+    df = get_dataset('dialog_acts.dat')
+    # df = preprocess(df)
+    label_dict = label_factorize(df)
+    majority_class = get_majority_class(df)
+    
+    model, vectorizer = train_logistic_regression_model(df)
+    # model, vectorizer = train_NB_classifier_model(df)
+    bot(model, vectorizer, label_dict)
+
+
+# In[13]:
+
+
+# main()
+
+
+# ---
+
+# ---
+
+# ---
 
 # ## Evaluations
 
-# In[60]:
+# In[14]:
 
 
 from sklearn.metrics import confusion_matrix, classification_report
@@ -262,7 +243,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 
 # ### Baseline Systems
 
-# In[61]:
+# In[15]:
 
 
 def plot_confusion_matrix(labels,predictions):
@@ -283,10 +264,10 @@ def plot_confusion_matrix(labels,predictions):
     plt.show()
 
 
-# In[63]:
+# In[16]:
 
 
-# predictions = (rules(df))
+predictions = df_keyword_matching(df)
 def baselineAccuracy(predictions, df):
     """Calculates the accuracy
         Arguments:
@@ -305,19 +286,13 @@ def baselineAccuracy(predictions, df):
     return "Accuracy: "+str(round(count / len(predictions)*100,1))+"%"
 
 
-# In[64]:
+# In[ ]:
 
 
 baselineAccuracy(predictions, df)
 
 
-# In[65]:
-
-
-plot_confusion_matrix(df['label'],predictions)
-
-
-# In[66]:
+# In[ ]:
 
 
 def metrics_overview(labels, predictions):
@@ -328,7 +303,7 @@ def metrics_overview(labels, predictions):
        
        Prints different metrics related to the confusion matrix.
        """
-       edges_confusion_matrix = sklearn.metrics.confusion_matrix(labels,predictions)
+       edges_confusion_matrix = confusion_matrix(labels,predictions)
 
        FP = edges_confusion_matrix.sum(axis=0) - np.diag(edges_confusion_matrix)  
        
@@ -398,7 +373,7 @@ metrics_overview(df['label'],predictions)
 
 # ### Proper Models (Random Forest, Multinomial NB, Logistic Regression)
 
-# In[67]:
+# In[ ]:
 
 
 mean_accuracy = cv_df.groupby('model_name').accuracy.mean()
@@ -411,28 +386,41 @@ acc.columns = ['Mean Accuracy', 'Standard deviation']
 acc
 
 
-# In[68]:
+# In[ ]:
 
 
-print(metrics.classification_report(y_test, y_pred_test, target_names= df['label'].unique()))
+print(classification_report(y_test, y_pred_test, target_names= df['label'].unique()))
 
 
-# In[70]:
+# In[ ]:
 
 
 import seaborn as sns
-import matplotlib.pyplot as plt 
 
 conf_mat = confusion_matrix(y_test, y_pred_test)
 plt.figure(figsize = (20,5))
-sns.heatmap(conf_mat, annot=True, cmap='Greens', fmt='d',
-            xticklabels=label_dict.label.values, 
-            yticklabels=label_dict.label.values)
 plt.ylabel('Actual')
 plt.xlabel('Predicted')
 
+sns.heatmap(conf_mat, annot=True, cmap='Greens', fmt='d',
+            xticklabels=label_dict.label.values, 
+            yticklabels=label_dict.label.values)
 
-# In[78]:
+
+# In[ ]:
+
+
+conf_mat = confusion_matrix(df['label'], predictions)
+plt.figure(figsize = (20,5))
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+
+sns.heatmap(conf_mat, annot=True, cmap='Greens', fmt='d',
+            xticklabels=label_dict.label.values, 
+            yticklabels=label_dict.label.values)
+
+
+# In[ ]:
 
 
 df.groupby('label').describe()
