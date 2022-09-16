@@ -15,8 +15,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import sklearn.metrics
-
 from re import search
 
 
@@ -39,60 +37,48 @@ df.head(3)
 
 
 # ## Pre-Processing
-# 
 # Looking for null values, irrelevant or noisy text (literally, removing 'tv_noise' and 'noise') and repeated values. Formatting labels into numbers.
 
 # In[4]:
 
 
+# transforming labels into numbers
 df['label_id'] = df['label'].factorize()[0]
 label_dict = df[['label','label_id']].drop_duplicates().set_index('label_id')
-
 label_dict
-
-
-# In[5]:
-
-
-from sklearn.model_selection import train_test_split
-# X - independent features (excluding target variable).
-# y - dependent variables (target we're looking to predict).
-
-X_train, X_test, y_train, y_test = train_test_split(
-    df['text'], df['label_id'], test_size=0.15, random_state=10
-)
-
-
-# In[13]:
-
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-tfidf = TfidfVectorizer(sublinear_tf=True, # scale the words frequency in logarithmic scale
-                        min_df=5, # remove the words which has occurred in less than ‘min_df’ number of files
-                        ngram_range=(1, 2), # don't know what role n-grams play in vectorisation
-                        stop_words='english', # it removes stop words which are predefined in ‘english’.
-                        lowercase=True # everything to lowercase
-                        )
-
-X_train_tfid = tfidf.fit_transform(X_train).toarray()
-X_test_tfid = tfidf.fit_transform(X_test).toarray()
-
-print(X_train_tfid)
-print(y_train)
 
 
 # ## Building Baseline Systems
 
-# In[7]:
+# In[5]:
 
 
-def BaselineRuleBased(dataframe):
+majority_class = df['label'].mode().to_string(index = False)
+print(f"Majority class is '{majority_class}' ")
+
+
+# In[6]:
+
+
+def df_majority_class(dataframe):
     """
-    Rule-based prediction of dialog acts based on utterances.
+    Classifies dialog based on the majority class label.
     Arguments:
         dataframe: a pandas dataframe that contains a column named text with utterances.
-        
+    Returns:
+        Returns a list of predictions about the label (dialog act) of the utterances.
+    """
+    predictions = []
+    for i in range(0,len(dataframe)):
+        predictions.append(majority_class)
+            
+    return predictions
+    
+def df_keyword_matching(dataframe):
+    """
+    Rule-based prediction of dialog acts based on a colletion of utterances.
+    Arguments:
+        dataframe: a pandas dataframe that contains a column named text with utterances.
     Returns:
         Returns a list of predictions about the label (dialog act) of the utterances.
     """
@@ -131,15 +117,25 @@ def BaselineRuleBased(dataframe):
     return predictions
 
 
-# In[8]:
+# In[7]:
 
 
-def new_sentence(utterance):
+def single_majority_class(utterance):
+    """
+    Classifies dialog based on the majority class label.
+    Arguments:
+        utterance: string
+    Returns:
+        Returns a list of predictions about the label (dialog act) of the utterances.
+    """
+    
+    return majority_class        
+    
+def single_keyword_matching(utterance):
     """
     Rule-based prediction of a dialog act based on a phrase.
     Arguments:
         utterance: string
-        
     Returns:
         Returns the predicted dialog act.
     """
@@ -174,12 +170,49 @@ def new_sentence(utterance):
         return 'ack'
     else:
         return 'inform'
-    
 
 
 # ## Building Classifier Models
 
-# In[9]:
+# In[31]:
+
+
+from sklearn.model_selection import train_test_split
+# X - independent features (excluding target variable).
+# y - dependent variables (target we're looking to predict).
+
+X_train, X_test, y_train, y_test = train_test_split(
+    df['text'], df['label_id'], test_size=0.15, random_state=0
+)
+
+print('Training Dataset')
+print(X_train.head(2))
+print(y_train.head(2))
+print('\nTesting Dataset')
+print(X_test.head(2))
+print(y_test.head(2))
+
+
+# In[46]:
+
+
+# model specific pre-processing - tfid vectorizing 'text' column
+from sklearn.feature_extraction.text import TfidfVectorizer
+tfidf = TfidfVectorizer(sublinear_tf=True, # scale the words frequency in logarithmic scale
+                        min_df=5, # remove the words which has occurred in less than ‘min_df’ number of files
+                        ngram_range=(1, 2), # don't know what role n-grams play in vectorisation
+                        stop_words='english', # it removes stop words which are predefined in ‘english’.
+                        lowercase=True # everything to lowercase
+)
+
+X_train_tfidf = tfidf.fit_transform(X_train).toarray()
+X_test_tfidf = tfidf.transform(X_test).toarray()
+
+print(X_train[0])
+print(X_train_tfidf[0])
+
+
+# In[36]:
 
 
 from sklearn.naive_bayes import MultinomialNB
@@ -193,51 +226,43 @@ models = [
 ]
 
 
-# In[11]:
+# In[41]:
 
 
 from sklearn.model_selection import cross_val_score
 
-CV = 2
+CV = 5
 entries = []
-cv_df = pd.DataFrame(index=range(CV * len(models)))
-
 for model in models:
-  model_name = model.__class__.__name__
-  accuracies = cross_val_score(model, X_train_tfid, y_train, scoring='accuracy')
-  for fold_idx, accuracy in enumerate(accuracies):
-    entries.append((model_name, fold_idx, accuracy))
+    model_name = model.__class__.__name__
+    accuracies = cross_val_score(model, X_train_tfidf, y_train, scoring='accuracy')
+    for fold_idx, accuracy in enumerate(accuracies):
+        entries.append((model_name, fold_idx, accuracy))
+    
 cv_df = pd.DataFrame(entries, columns=['model_name', 'fold_idx', 'accuracy'])
 
 
-# In[12]:
+# In[47]:
 
 
-mean_accuracy = cv_df.groupby('model_name').accuracy.mean()
-std_accuracy = cv_df.groupby('model_name').accuracy.std()
-
-acc = pd.concat([mean_accuracy, std_accuracy], axis= 1, 
-          ignore_index=True)
-acc.columns = ['Mean Accuracy', 'Standard deviation']
-
-acc 
-
-
-# seems like LogisticRegression is the best or we can tweek the hyperparameters more. 
-
-# In[15]:
-
-
+# fitting logistic regression
 model = LogisticRegression(random_state=0, max_iter=400)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
+model.fit(X_train_tfidf, y_train)
+y_pred_test = model.predict(X_test_tfidf)
 
 
 # ## Evaluations
 
+# In[60]:
+
+
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import ConfusionMatrixDisplay
+
+
 # ### Baseline Systems
 
-# In[16]:
+# In[61]:
 
 
 def plot_confusion_matrix(labels,predictions):
@@ -251,18 +276,17 @@ def plot_confusion_matrix(labels,predictions):
         plots the confusion matrix
     """
     plt.rcParams.update(plt.rcParamsDefault)
-
     plt.rcParams['figure.figsize'] = [10, 10]
     plt.rcParams['font.size'] = 8
-    sklearn.metrics.ConfusionMatrixDisplay.from_predictions(labels,predictions)
-
+    
+    ConfusionMatrixDisplay.from_predictions(labels,predictions)
     plt.show()
 
 
-# In[17]:
+# In[63]:
 
 
-predictions = (rules(df))
+# predictions = (rules(df))
 def baselineAccuracy(predictions, df):
     """Calculates the accuracy
         Arguments:
@@ -281,19 +305,19 @@ def baselineAccuracy(predictions, df):
     return "Accuracy: "+str(round(count / len(predictions)*100,1))+"%"
 
 
-# In[ ]:
+# In[64]:
 
 
 baselineAccuracy(predictions, df)
 
 
-# In[ ]:
+# In[65]:
 
 
 plot_confusion_matrix(df['label'],predictions)
 
 
-# In[ ]:
+# In[66]:
 
 
 def metrics_overview(labels, predictions):
@@ -374,23 +398,32 @@ metrics_overview(df['label'],predictions)
 
 # ### Proper Models (Random Forest, Multinomial NB, Logistic Regression)
 
-# In[ ]:
+# In[67]:
 
 
-from sklearn.metrics import confusion_matrix
-from sklearn import metrics
+mean_accuracy = cv_df.groupby('model_name').accuracy.mean()
+std_accuracy = cv_df.groupby('model_name').accuracy.std()
 
-print(metrics.classification_report(label_test, label_pred, 
-                                    target_names= df['label'].unique()))
+acc = pd.concat([mean_accuracy, std_accuracy], axis= 1, 
+          ignore_index=True)
+acc.columns = ['Mean Accuracy', 'Standard deviation']
+
+acc
 
 
-# In[ ]:
+# In[68]:
+
+
+print(metrics.classification_report(y_test, y_pred_test, target_names= df['label'].unique()))
+
+
+# In[70]:
 
 
 import seaborn as sns
 import matplotlib.pyplot as plt 
 
-conf_mat = confusion_matrix(label_test, label_pred)
+conf_mat = confusion_matrix(y_test, y_pred_test)
 plt.figure(figsize = (20,5))
 sns.heatmap(conf_mat, annot=True, cmap='Greens', fmt='d',
             xticklabels=label_dict.label.values, 
@@ -399,14 +432,8 @@ plt.ylabel('Actual')
 plt.xlabel('Predicted')
 
 
-# In[ ]:
+# In[78]:
 
 
-df.describe()
-
-
-# In[ ]:
-
-
-df.groupby('label').describe().sort_values(('text','count'))
+df.groupby('label').describe()
 
