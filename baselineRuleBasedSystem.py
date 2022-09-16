@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[285]:
+# In[28]:
 
 
 import pandas as pd
@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import sklearn.metrics
 
 
-# In[270]:
+# In[29]:
 
 
 with open('dialog_acts.dat', 'r') as f:
@@ -22,10 +22,10 @@ df = df[df.label != 'null']
 df = df.reset_index()
 
 
-# In[286]:
+# In[30]:
 
 
-def BaselineRuleBased(dataframe):
+def df_keyword_matching(dataframe):
     """
     Rule-based prediction of dialog acts based on utterances.
     Arguments:
@@ -69,7 +69,7 @@ def BaselineRuleBased(dataframe):
     return predictions
 
 
-# In[287]:
+# In[31]:
 
 
 def new_sentence(utterance):
@@ -115,7 +115,7 @@ def new_sentence(utterance):
     
 
 
-# In[288]:
+# In[32]:
 
 
 def plot_confusion_matrix(labels,predictions):
@@ -137,13 +137,13 @@ def plot_confusion_matrix(labels,predictions):
     plt.show()
 
 
-# In[289]:
+# In[33]:
 
 
-predictions = (rules(df))
+predictions = (df_keyword_matching(df))
 
 
-# In[290]:
+# In[34]:
 
 
 def baselineAccuracy(predictions, df):
@@ -165,22 +165,22 @@ def baselineAccuracy(predictions, df):
         
 
 
-# In[291]:
+# In[35]:
 
 
 baselineAccuracy(predictions, df)
 
 
-# In[292]:
+# In[36]:
 
 
 plot_confusion_matrix(df['label'],predictions)
 
 
-# In[293]:
+# In[39]:
 
 
-def metrics_overview(labels, predictions):
+def F1_score(labels, predictions):
        """Prints metrics
        Arguments:
        labels: array-like of shape (n_samples,)
@@ -201,61 +201,23 @@ def metrics_overview(labels, predictions):
        
        # Sensitivity, hit rate, recall, or true positive rate
        TPR = TP/(TP+FN)
-       print('TPR',TPR)
-       print('Average TPR',np.average(TPR))
-       print('_______________________________')
+
        # Specificity or true negative rate
        TNR = TN/(TN+FP)
-       print('TNR',TNR)
-       print('Average TNR',np.average(TNR))
-       print('_______________________________')
 
        # Precision or positive predictive value
        PPV = TP/(TP+FP)
-       print('PPV',PPV)
-       print('Average PPV',np.average(PPV))
-       print('_______________________________')
 
-       # Negative predictive value
-       NPV = TN/(TN+FN)
-       print('NPV',NPV)
-       print('Average NPV',np.average(NPV))
-       print('_______________________________')
 
-       # Fall out or false positive rate
-       FPR = FP/(FP+TN)
-       print('FPR',FPR)
-       print('Average FPR',np.average(FPR))
-       print('_______________________________')
-
-       # False negative rate
-       FNR = FN/(TP+FN)
-       print('FNR',FNR)
-       print('Average FNR',np.average(FNR))
-       print('_______________________________')
-
-       # False discovery rate
-       FDR = FP/(TP+FP)
-       print('FDR',FDR)
-       print('Average FDR',np.average(FDR))
-       print('_______________________________')
-
-       # Overall accuracy
-       ACC = (TP+TN)/(TP+FP+FN+TN)
-       print('ACC',ACC)
-       print('Average ACC',np.average(ACC))
-       print('_______________________________')
 
        F1 = 2*((PPV*TPR)/(PPV+TPR))
        F1 = F1[~np.isnan(F1)]
        print('F1',F1)
        print('Average F1',np.average(F1))
-       print('_______________________________')
-       print((FP+FN)/(TP+FP+FN+TN))
 
 
-# In[294]:
+# In[40]:
 
 
-metrics_overview(df['label'],predictions)
+F1_score(df['label'],predictions)
 
