@@ -36,13 +36,35 @@ def get_dataset(path):
 # In[3]:
 
 
-def preprocess(dataset):
+def preprocess(df):
     """
     Preprocesses the dataset
     args: DataFrame dataset
     return: dataset
     """
-    return dataset
+    df_proc = df.copy()
+    print("before removing 'noise': ")
+    print(df_proc.describe())
+
+    # if text contains "noise" or "tv_noise", remove it
+    for index, row in df_proc.iterrows():
+        if "tv_noise" in row[1]:
+            row[1] = row[1].replace('tv_noise', '')
+        elif "noise" in row[1]:
+            row[1] = row[1].replace('noise', '')
+
+        row[1] = row[1].strip()
+
+    # if that makes the column empty, remove the row
+    for i in range(len(df_proc.index)):
+        text = df['text'][i]
+        if not text:
+            df_proc = df.drop([i])
+
+    print("\nafter: ")
+    print(df_proc.describe())
+    
+    return df_proc
 
 
 # In[4]:
