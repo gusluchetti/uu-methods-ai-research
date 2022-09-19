@@ -2,7 +2,6 @@
 # coding: utf-8
 
 # # WIP - Restaurant Recommendation Dialog System
-# 
 # ## Members:
 # - Karpiński, R.R. (Rafał)
 # - Pavan, L. (Lorenzo)
@@ -11,28 +10,30 @@
 
 # In[1]:
 
-
+from bot import bot
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import re
 
-
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 # In[2]:
 
 
 def get_dataset(path):
     """
-      args: dataset file path
-      return: DataFrame of dataset
+    Getting dataset from .dat file
+    args: dataset file path
+    return: DataFrame of dataset
     """
     with open(path, 'r') as f:
         data = f.readlines()
         data = list(map(lambda x: x.rstrip("\n").split(" ", 1), data))
-    df = pd.DataFrame(np.array(data), columns = ['label', 'text'])    
+
+    df = pd.DataFrame(np.array(data), columns=['label', 'text'])
     return df
-
-
 # In[3]:
 
 
@@ -52,7 +53,6 @@ def preprocess(df):
             row[1] = row[1].replace('tv_noise', '')
         elif "noise" in row[1]:
             row[1] = row[1].replace('noise', '')
-
         row[1] = row[1].strip()
 
     # if that makes the column empty, remove the row
@@ -63,36 +63,13 @@ def preprocess(df):
 
     print("\nafter: ")
     print(df_proc.describe())
-    
-    return df_proc
-
-
-# In[4]:
-
-
-def label_factorize(df):
-    """Does label factorization for a dataframe that has a column labeled 'label'"""
     # making label dict (turning labels into numbers)
     df['label_id'] = df['label'].factorize()[0]
-    label_dict = df[['label','label_id']].drop_duplicates().set_index('label_id')
-    
-    return label_dict
+    label_dict = df[['label', 'label_id']].drop_duplicates(
+    ).set_index('label_id')
 
-
-# ## Building Baseline Systems
-
-# In[5]:
-
-
-def get_majority_class():
-    majority_class = df['label'].mode().to_string(index = False)
-    print(f"Majority class is '{majority_class}' ")
-    
-    return majority_class
-
-
-# In[6]:
-
+    return df_proc, label_dict
+# In[4]:
 
 # should we remove null completely?
 keyword_dict = {
@@ -112,23 +89,19 @@ keyword_dict = {
     "reqmore": "\bmore\b",
     "null": "_?_",
 }
+# In[ ]:
 
-
-# In[7]:
-
-
-def single_keyword_matching(text):
+# first baseline system - "always assigns the majority class of in the data"
+def get_majority_class(df):
     """
-    Rule-based prediction of a dialog act based on a phrase.
+    Classifies dialog based on the majority class label.
     args: utterance (any string)
-    returns: Returns the predicted dialog act.
+    returns: list of predictions about the label (dialog act) of the utterances.
     """
-    label = "inform"
-    for key in keyword_dict:
-        if (re.search(keyword_dict[key], text)): #if we find one of our keywords on any given string
-            label = key
-            return
-    return label
+    majority_class = df['label'].mode().to_string(index=False)
+    print(f"Majority class is '{majority_class}'")
+    return majority_class
+
 
 def df_majority_class(dataframe):
     """
@@ -137,38 +110,39 @@ def df_majority_class(dataframe):
     returns: list of predictions about the label (dialog act) of the utterances.
     """
     predictions = []
-    for i in range(0,len(dataframe)):
-        predictions.append(majority_class)
+    for i in range(0, len(dataframe)):
+        predictions.append(get_majority_class())
     return predictions
+# In[6]:
 
-
-# In[8]:
-
-
-def single_majority_class(utterance):
+# second baseline system - "rule-based system based on keyword matching"
+def single_keyword_matching(text):
     """
-    Classifies dialog based on the majority class label.
+    Rule-based prediction of a dialog act based on a phrase.
     args: utterance (any string)
-    returns: list of predictions about the label (dialog act) of the utterances.
+    returns: Returns the predicted dialog act.
     """
-    return majority_class      
+    label = "inform"
+    for key in keyword_dict:
+        # if we find one of our keywords on any given string
+        if (re.search(keyword_dict[key], text)):
+            label = key
+            return
+    return label
 
-def df_keyword_matching(dataframe):
+
+def df_keyword_matching(df):
     """
     Rule-based prediction of dialog acts based on a colletion of utterances.
     args: DataFrame that contains a column named text with utterances.
     returns: list of predictions about the label (dialog act) of the utterances.
     """
     predictions = []
-    for i in range(0,len(dataframe)):
+    for i in range(0, len(df)):
         text = df.loc[i, 'text']
         predictions.append(single_keyword_matching(text))
     return predictions
-
-
-# ## Building Classifier Models
-
-# In[9]:
+# In[19]:
 
 
 def train_model(method, df):
@@ -179,22 +153,19 @@ def train_model(method, df):
     """
     # X - independent features (excluding target variable).
     # y - dependent variables (target we're looking to predict).
-    
     X_train, X_test, y_train, y_test = train_test_split(
         df['text'], df['label_id'], test_size=0.15, random_state=10
     )
 
     tfidf = TfidfVectorizer(
-        sublinear_tf=True, # scale the words frequency in logarithmic scale
-        min_df=5, # remove the words which has occurred in less than ‘min_df’ number of files
-        ngram_range=(1, 2), # don't know what role n-grams play in vectorisation
-        stop_words='english', # it removes stop words which are predefined in ‘english’.
-        lowercase=True # everything to lowercase
+        sublinear_tf=True,  # scale the words frequency in logarithmic scale
+        min_df=5,  # remove the words which has occurred in less than ‘min_df’ number of files
+        ngram_range=(1, 2),  # don't know what role n-grams play in vectorisation
+        stop_words='english',  # it removes stop words which are predefined in ‘english’.
+        lowercase=True  # everything to lowercase
     )
-    
-    X_train_tfidf = tfidf.fit_transform(X_train).toarray()
-    labels = label_train
 
+    X_train_tfidf = tfidf.fit_transform(X_train).toarray()
     model = method
     model.fit(X_train_tfidf, y_train)
 
@@ -203,47 +174,27 @@ def train_model(method, df):
 
     return (model, tfidf)
 
-# shorthands for model training
+
 def train_logistic_regression_model(df):
-    return train_model(LogisticRegression(random_state=0, max_iter=400), df)
+    return train_model(LogisticRegression(random_state=10, max_iter=400), df)
+
 
 def train_NB_classifier_model(df):
     return train_model(MultinomialNB(), df)
 
-
-# In[11]:
-
-
-#from sklearn.model_selection import cross_val_score
-
-#CV = 5
-#entries = []
-#for model in models:
-#    model_name = model.__class__.__name__
-#    accuracies = cross_val_score(model, X_train_tfidf, y_train, scoring='accuracy')
-#    for fold_idx, accuracy in enumerate(accuracies):
-#        entries.append((model_name, fold_idx, accuracy))
-#    
-#cv_df = pd.DataFrame(entries, columns=['model_name', 'fold_idx', 'accuracy'])
+# In[23]:
 
 
-# In[12]:
-
-
-def main():
+def main(classifier):
     """Prepares the dataset, model and runs the bot"""
     df = get_dataset('dialog_acts.dat')
-    # df = preprocess(df)
-    label_dict = label_factorize(df)
-    majority_class = get_majority_class(df)
-    
-    model, vectorizer = train_logistic_regression_model(df)
-    # model, vectorizer = train_NB_classifier_model(df)
-    bot(model, vectorizer, label_dict)
+    df, label_dict = preprocess(df)
+
+    print('\nDF after processing: ')
+    print(df.head(3))
+    lr, lr_vectorizer = train_logistic_regression_model(df)
+    nb, nb_vectorizer = train_NB_classifier_model(df)
+    bot(lr, lr_vectorizer, label_dict)
 
 
-# In[13]:
-
-
-# main()
-
+main("test")
