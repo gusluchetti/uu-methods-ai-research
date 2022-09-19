@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[28]:
+# In[3]:
 
 
 import pandas as pd
@@ -9,12 +9,13 @@ import numpy as np
 from re import search
 import matplotlib.pyplot as plt
 import sklearn.metrics
+import seaborn as sp
 
 
-# In[29]:
+# In[4]:
 
 
-with open('dialog_acts.dat', 'r') as f:
+with open(r'C:\users\niels\Downloads\dialog_acts.dat', 'r') as f:
     data = f.readlines()
     data = list(map(lambda x: [x[0:x.index(" ")], x[x.index(" ")+1:-1]], data))
 df = pd.DataFrame(np.array(data), columns = ['label', 'text'])
@@ -22,7 +23,23 @@ df = df[df.label != 'null']
 df = df.reset_index()
 
 
-# In[30]:
+# In[5]:
+
+
+def plot_histogram(df):
+    plt.rcParams['figure.figsize'] = [8, 8]
+    plt.rcParams['font.size'] = 6
+    sp.histplot(df['label'])
+
+
+
+# In[6]:
+
+
+plot_histogram(df)
+
+
+# In[8]:
 
 
 def df_keyword_matching(dataframe):
@@ -69,7 +86,7 @@ def df_keyword_matching(dataframe):
     return predictions
 
 
-# In[31]:
+# In[9]:
 
 
 def new_sentence(utterance):
@@ -113,6 +130,25 @@ def new_sentence(utterance):
     else:
         return 'inform'
     
+
+
+# In[20]:
+
+
+#test cases (FIRST CASE)
+print(new_sentence("Thank you good bye")) #Actual label: thankyou
+print(new_sentence("yes good bye")) #Actual label: affirm
+print(new_sentence("yes thank you for the recommendation good bye")) #Actual label: affirm
+print(new_sentence("uh no thats it good bye")) #Actual label: negate
+print(new_sentence("uh no thank you and good bye")) ##Actual label: negate
+
+#test cases (SECOND CASE)
+
+print(new_sentence("what is there in the north")) #Actual label: inform
+print(new_sentence("what is there anything else")) #Actual label: reqalts
+print(new_sentence("what is the other restaurant with portuguese food")) #Actual label: reqalts
+print(new_sentence("kay what is the addre")) #Actual label: inform
+print(new_sentence("i dont care about the price range what is the address")) #Actual label: inform
 
 
 # In[32]:
