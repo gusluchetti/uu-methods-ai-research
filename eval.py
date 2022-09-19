@@ -1,6 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[ ]:
+
+
+from sklearn.model_selection import cross_val_score
+
+CV = 5
+entries = []
+for model in models:
+    model_name = model.__class__.__name__
+    accuracies = cross_val_score(model, X_train_tfidf, y_train, scoring='accuracy')
+    for fold_idx, accuracy in enumerate(accuracies):
+        entries.append((model_name, fold_idx, accuracy))
+    
+cv_df = pd.DataFrame(entries, columns=['model_name', 'fold_idx', 'accuracy'])
+
+
 # ## Evaluations
 
 # In[1]:
