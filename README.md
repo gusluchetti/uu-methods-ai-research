@@ -2,9 +2,9 @@
 This repo contains the assignments made for the Methods in A.I. Research Course, Utrecht University, 1st Period.
 
 ## Build Dependencies
-- This project uses [pyenv](https://github.com/pyenv/pyenv) in conjunction with [poetry](https://python-poetry.org/) for better package management.
-After cloning the repository, `poetry install` and `poetry shell` should suffice in setting up a valid virtual environment specific to the repository. 
-You can assert that by running `which python` where the output should be something similar to `.../pypoetry/virtualenvs/...`. 
+- This project uses [pyenv](https://github.com/pyenv/pyenv) in conjunction with [poetry](https://python-poetry.org/) for better package management. 
+Assuming both are **properly installed** and you're **inside the directory** where the repository has been cloned, run `poetry install` and `poetry shell` to install all dependencies and setup a local virtualenv with said packages, respectively. `poetry run main.py` will run the main file inside the virtualenv.
+
 ## Arguments
 - Two arguments are supported when running `main.py`: `reprocess`, which forces the program to rebuild and reprocess the dataframe from the original dataset (dialog_acts.dat) and `remodel`, which forces the remodelling of the current models selected.
 
