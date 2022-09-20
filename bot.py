@@ -3,14 +3,14 @@ def bot(list_models):
     print("Hello! I'm a restaurant recommendation bot! \n")
     classifier_key = input("""
     Please select a classifier method:
-    (1-Default) - 1st Baseline - Majority Class: Always predicts the majority class (in this case, 'inform' label)
-    (2) - 2nd Baseline - Keyword Matching: Predictions are based on keywords found in the utterance
-    (3) - Multinomial Naive-Bayes
-    (4) - Logistic Regression
+    (1) - 1st Baseline - Majority Class: Always predicts the majority class (in this case, 'inform' label)
+    (2-Default) - 2nd Baseline - Keyword Matching: Predictions are based on keywords found in the utterance
+    (3) - Logistic Regression
+    (4) - Multinomial Naive-Bayes
     """)
 
     # set desired classifier
-    classifier = list_models["1"]
+    classifier = list_models["2"]
     try:
         if classifier_key in list_models.keys():
             classifier = list_models[classifier_key]
@@ -26,7 +26,6 @@ def bot(list_models):
         utterance = input('>').lower()
         classification = classifier(utterance)
         print(f"Your last input was labeled/classified as : {classification}")
-
         if utterance == "forcequit" or classification == "bye":
             finished = True
             print("Bye! See ya later.")
