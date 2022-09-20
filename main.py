@@ -6,6 +6,8 @@
 # - Teunissen, N.D. (Niels)
 
 import re
+import os
+import sys
 import pandas as pd
 import numpy as np
 
@@ -13,6 +15,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
+import pickle
 
 from bot import bot  # local import
 
@@ -37,6 +40,7 @@ def get_dataset(path):
 
 
 def preprocess(df):
+    global label_dict
     """
     Preprocesses the dataset
     args: DataFrame dataset
@@ -58,17 +62,16 @@ def preprocess(df):
 
     # making label dict (turning labels into numbers)
     df['label_id'] = df['label'].factorize()[0]
-    label_dict = df[['label', 'label_id']].drop_duplicates(
-    ).set_index('label_id')
-
+    label_dict = df[['label', 'label_id']].drop_duplicates().set_index('label_id')
+    print(f"\nLabel Dictionary = {label_dict}")
     return df, label_dict
 
 
 # first baseline system - "always assigns the majority class of in the data"
 majority_class = "inform"
 def set_majority_class(df):
-    print(df, majority_class)
     """Returns majority label for a given dataframe with a label column"""
+    print(df, majority_class)
     return df['label'].mode().to_string()
 
 
@@ -111,6 +114,7 @@ def single_keyword_matching(utterance):
 
 
 def train_model(method, df):
+    global tfidf
     """
     Trains any method of classifier that fits the pre-processing.
     args: model being used (and any parameters for said model), and a dataframe
@@ -136,7 +140,7 @@ def train_model(method, df):
 
     # X_test_tfidf = tfidf.transform(X_test).toarray()
     # y_pred_test = model.predict(X_test_tfidf)
-    return (model, tfidf)
+    return model
 
 
 def train_logistic_regression_model(df):
@@ -147,36 +151,66 @@ def train_NB_classifier_model(df):
     return train_model(MultinomialNB(), df)
 
 
-logistic_regression = None
+def tfidf_convert(utterance):
+    array = np.array([utterance])
+    converted = tfidf.transform(array).toarray()
+    return converted
+
+# this is a bit convoluted, but this is the easiest way for us to retrieve
+# a prediction's label given one of the models' predictions
+# TODO: unify prediction functions into one?
 def predict_lr(utterance):
-    model = logistic_regression
-    return model.predict(utterance)
+    global logistic_regression, tfidf, label_dict
+    return label_dict[logistic_regression.predict(tfidf_convert(utterance)).item(0)]
 
 
-multinomial_nb = None
-def predict_nb(utterance):
-    model = multinomial_nb
-    return model.predict(utterance)
+def predict_mnb(utterance):
+    global multinomial_nb, tifdf, label_dict
+    return label_dict[multinomial_nb.predict(tfidf_convert(utterance)).item(0)]
 
 
 def main():
-    """Prepares the dataset, model and runs the bot"""
-    df = get_dataset('dialog_acts.dat')
-    print(f"Dataset loaded into Dataframe! \n {df.head}")
-    df_proc, label_dict = preprocess(df)
-    df = df_proc.copy()
-    print(f"\nDataframe after processing: \n {df.head}")
+    global tfidf
+    global logistic_regression
+    global multinomial_nb
+    global saved_lr
+    global saved_mnb
 
-    logistic_regression, lr_vectorizer = train_logistic_regression_model(df)
-    multinomial_nb, nb_vectorizer = train_NB_classifier_model(df)
+    """Prepares the dataset, model and runs the bot"""
+    print(sys.argv)
+    if os.path.exists("df.csv") and "reprocess" not in sys.argv:
+        print("Found existing processed dataframe! Using it instead...")
+        df = pd.read_csv("df.csv")
+    else:
+        print("Building and processing dataframe from scratch.")
+        df = get_dataset('dialog_acts.dat')
+        print(f"Dataset loaded into Dataframe! \n {df.head}")
+
+        df_proc, label_dict = preprocess(df)
+        df = df_proc.copy()
+        print(f"\nDataframe after processing: \n {df.head}")
+
+        df.to_csv("df.csv", index=False)
+        print("Processed dataframe saved as .csv! \n")
+
+    if "remodel" not in sys.argv:
+        print("Found saved models! Reusing them...")
+        logistic_regression = pickle.loads(saved_lr)
+        multinomial_nb = pickle.loads(saved_mnb)
+    else:
+        print("Building models from scratch! This will take a while.")
+        logistic_regression = train_logistic_regression_model(df)
+        multinomial_nb = train_NB_classifier_model(df)
+        saved_lr = pickle.dumps(logistic_regression)
+        saved_mnb = pickle.dumps(multinomial_nb)
 
     # all classifiers should support a single string as argument
     # and output a label as a classification prediction
     list_models = {
         "1": get_majority_class,
         "2": single_keyword_matching,
-        "3": logistic_regression,
-        "4": multinomial_nb
+        "3": predict_lr,
+        "4": predict_mnb
     }
     bot(list_models)
 
