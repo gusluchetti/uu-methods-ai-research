@@ -200,16 +200,16 @@ def main():
 
     if "remodel" not in sys.argv:
         print("Found saved models! Reusing them...")
-        logistic_regression = pickle.load(open('lr', 'rb'))
-        multinomial_nb = pickle.load(open('mnb', 'rb'))
+        logistic_regression = pickle.load(open('lr.sav', 'rb'))
+        multinomial_nb = pickle.load(open('mnb.sav', 'rb'))
     else:
         print("Building models from scratch! This might take a while.")
         logistic_regression = train_logistic_regression_model(X_train, y_train)
         multinomial_nb = train_NB_classifier_model(X_train, y_train)
 
         print("Models have been fit! Saving them for future use... \n")
-        pickle.dump(logistic_regression, open('lr', 'wb'))
-        pickle.dump(multinomial_nb, open('mnb', 'wb'))
+        pickle.dump(logistic_regression, open('lr.sav', 'wb'))
+        pickle.dump(multinomial_nb, open('mnb.sav', 'wb'))
 
     # the following functions have a single string as their argument
     # and return a label as a classification prediction

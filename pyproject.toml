@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "uu-methods-ai-research"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "uu_methods_ai_research"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+pandas = "^1.5.0"
+scipy = "^1.9.1"
+sklearn = "^0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
