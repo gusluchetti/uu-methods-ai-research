@@ -77,21 +77,21 @@ def get_majority_class(utterance):
 
 # should we remove null completely?
 keyword_dict = {
-    "inform": "\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
-    "confirm": "\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
-    "affirm": "\byes\b|\byeah\b|\bcorrect\b",
-    "request": "\bwhat is\b|\bwhats\b|\bmay i\b|\bcould i\b|\bwhat\b|\bprice range\b|\bpost code\b|\btype of\b|\baddress\b|\bphone number\b|\bcan i\b|\bcould i\b|\bcould you\b|\bdo you\b|\bi want+.address\b|\bi want+.phone\b|\bi would\b|\bwhere is\b",
-    "thankyou": "\bthank you\b",
-    "bye": "\bgoodbye\b|\bbye\b",
-    "reqalts": "\bhow about\b|\bwhat about\b|\banything else\b|\bare there\b|\bis there\b|\bwhat else\b",
-    "negate": "\bno\b|\bnot\b",
-    "hello": "\bhello\b",
-    "repeat": "\brepeat\b",
-    "ack": "\bokay\b|\bkay\b",
-    "restart": "\bstart\b",
-    "deny": "\bdont\b",
-    "reqmore": "\bmore\b",
-    "null": "_?_",
+    "inform": r"\blooking\b|\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
+    "confirm": r"\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
+    "affirm": r"\byes\b|\byeah\b|\bcorrect\b",
+    "request": r"\bwhat is\b|\bwhats\b|\bmay i\b|\bcould i\b|\bwhat\b|\bprice range\b|\bpost code\b|\btype of\b|\baddress\b|\bphone number\b|\bcan i\b|\bcould i\b|\bcould you\b|\bdo you\b|\bi want+.address\b|\bi want+.phone\b|\bi would\b|\bwhere is\b",
+    "thankyou": r"\bthank you\b",
+    "bye": r"\bgoodbye\b|\bbye\b",
+    "reqalts": r"\bhow about\b|\bwhat about\b|\banything else\b|\bare there\b|\bis there\b|\bwhat else\b",
+    "negate": r"\bno\b|\bnot\b",
+    "hello": r"\bhello\b",
+    "repeat": r"\brepeat\b",
+    "ack": r"\bokay\b|\bkay\b",
+    "restart": r"\bstart\b",
+    "deny": r"\bdont\b",
+    "reqmore": r"\bmore\b",
+    "null": r"__?__",
 }
 
 
@@ -102,14 +102,12 @@ def single_keyword_matching(utterance):
     args: utterance (any string)
     returns: Returns the predicted dialog act.
     """
-    label = majority_class
+    label = "null"
     for key in keyword_dict:
-        keyword_found = re.match(utterance, keyword_dict[key])
         # if we find one of our keywords on any given string
-        if (keyword_found):
+        if re.search(keyword_dict[key], utterance):
             label = key
-            return
-    return label
+            return label
 
 
 def train_model(method, df):

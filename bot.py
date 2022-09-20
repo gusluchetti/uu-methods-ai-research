@@ -16,7 +16,7 @@ def bot(list_models):
             classifier = list_models[classifier_key]
             print(f"Model {classifier} was selected!")
         else:
-            print('Model doesnt exist!')
+            print("Model doesn't exist!")
     except:
         print('whoops! - bad things happened somehow')
 
