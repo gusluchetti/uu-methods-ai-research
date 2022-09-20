@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # # WIP - Restaurant Recommendation Dialog System
 # ## Members:
 # - Karpiński, R.R. (Rafał)
@@ -8,18 +5,21 @@
 # - Rodrigues Luchetti, G.L. (Gustavo)
 # - Teunissen, N.D. (Niels)
 
-# In[1]:
-
-from bot import bot
+import re
 import pandas as pd
 import numpy as np
-import re
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-# In[2]:
+
+from bot import bot  # local import
+
+# main should be responsible for setting up the dataset, doing preprocessing
+# and training the models that will be used
+# those models are then passed onto the bot that is called at the very end
+# of the file, with these aformentioned baseline systems + models
 
 
 def get_dataset(path):
@@ -34,7 +34,6 @@ def get_dataset(path):
 
     df = pd.DataFrame(np.array(data), columns=['label', 'text'])
     return df
-# In[3]:
 
 
 def preprocess(df):
@@ -43,12 +42,8 @@ def preprocess(df):
     args: DataFrame dataset
     return: dataset
     """
-    df_proc = df.copy()
-    print("before removing 'noise': ")
-    print(df_proc.describe())
-
     # if text contains "noise" or "tv_noise", remove it
-    for index, row in df_proc.iterrows():
+    for index, row in df.iterrows():
         if "tv_noise" in row[1]:
             row[1] = row[1].replace('tv_noise', '')
         elif "noise" in row[1]:
@@ -56,20 +51,29 @@ def preprocess(df):
         row[1] = row[1].strip()
 
     # if that makes the column empty, remove the row
-    for i in range(len(df_proc.index)):
+    for i in range(len(df.index)):
         text = df['text'][i]
         if not text:
-            df_proc = df.drop([i])
+            df = df.drop([i])
 
-    print("\nafter: ")
-    print(df_proc.describe())
     # making label dict (turning labels into numbers)
     df['label_id'] = df['label'].factorize()[0]
     label_dict = df[['label', 'label_id']].drop_duplicates(
     ).set_index('label_id')
 
-    return df_proc, label_dict
-# In[4]:
+    return df, label_dict
+
+
+# first baseline system - "always assigns the majority class of in the data"
+majority_class = "inform"
+def set_majority_class(df):
+    print(df, majority_class)
+    """Returns majority label for a given dataframe with a label column"""
+    return df['label'].mode().to_string()
+
+
+def get_majority_class(utterance):
+    return majority_class
 
 # should we remove null completely?
 keyword_dict = {
@@ -89,60 +93,23 @@ keyword_dict = {
     "reqmore": "\bmore\b",
     "null": "_?_",
 }
-# In[ ]:
 
-# first baseline system - "always assigns the majority class of in the data"
-def get_majority_class(df):
-    """
-    Classifies dialog based on the majority class label.
-    args: utterance (any string)
-    returns: list of predictions about the label (dialog act) of the utterances.
-    """
-    majority_class = df['label'].mode().to_string(index=False)
-    print(f"Majority class is '{majority_class}'")
-    return majority_class
-
-
-def df_majority_class(dataframe):
-    """
-    Classifies dialog based on the majority class label.
-    args: pandas DataFrame that contains a column named text with utterances.
-    returns: list of predictions about the label (dialog act) of the utterances.
-    """
-    predictions = []
-    for i in range(0, len(dataframe)):
-        predictions.append(get_majority_class())
-    return predictions
-# In[6]:
 
 # second baseline system - "rule-based system based on keyword matching"
-def single_keyword_matching(text):
+def single_keyword_matching(utterance):
     """
     Rule-based prediction of a dialog act based on a phrase.
     args: utterance (any string)
     returns: Returns the predicted dialog act.
     """
-    label = "inform"
+    label = majority_class
     for key in keyword_dict:
+        keyword_found = re.match(utterance, keyword_dict[key])
         # if we find one of our keywords on any given string
-        if (re.search(keyword_dict[key], text)):
+        if (keyword_found):
             label = key
             return
     return label
-
-
-def df_keyword_matching(df):
-    """
-    Rule-based prediction of dialog acts based on a colletion of utterances.
-    args: DataFrame that contains a column named text with utterances.
-    returns: list of predictions about the label (dialog act) of the utterances.
-    """
-    predictions = []
-    for i in range(0, len(df)):
-        text = df.loc[i, 'text']
-        predictions.append(single_keyword_matching(text))
-    return predictions
-# In[19]:
 
 
 def train_model(method, df):
@@ -169,9 +136,8 @@ def train_model(method, df):
     model = method
     model.fit(X_train_tfidf, y_train)
 
-    X_test_tfidf = tfidf.transform(X_test).toarray()
-    y_pred_test = model.predict(X_test_tfidf)
-
+    # X_test_tfidf = tfidf.transform(X_test).toarray()
+    # y_pred_test = model.predict(X_test_tfidf)
     return (model, tfidf)
 
 
@@ -182,19 +148,39 @@ def train_logistic_regression_model(df):
 def train_NB_classifier_model(df):
     return train_model(MultinomialNB(), df)
 
-# In[23]:
+
+logistic_regression = None
+def predict_lr(utterance):
+    model = logistic_regression
+    return model.predict(utterance)
 
 
-def main(classifier):
+multinomial_nb = None
+def predict_nb(utterance):
+    model = multinomial_nb
+    return model.predict(utterance)
+
+
+def main():
     """Prepares the dataset, model and runs the bot"""
     df = get_dataset('dialog_acts.dat')
-    df, label_dict = preprocess(df)
+    print(f"Dataset loaded into Dataframe! \n {df.head}")
+    df_proc, label_dict = preprocess(df)
+    df = df_proc.copy()
+    print(f"\nDataframe after processing: \n {df.head}")
 
-    print('\nDF after processing: ')
-    print(df.head(3))
-    lr, lr_vectorizer = train_logistic_regression_model(df)
-    nb, nb_vectorizer = train_NB_classifier_model(df)
-    bot(lr, lr_vectorizer, label_dict)
+    logistic_regression, lr_vectorizer = train_logistic_regression_model(df)
+    multinomial_nb, nb_vectorizer = train_NB_classifier_model(df)
+
+    # all classifiers should support a single string as argument
+    # and output a label as a classification prediction
+    list_models = {
+        "1": get_majority_class,
+        "2": single_keyword_matching,
+        "3": logistic_regression,
+        "4": multinomial_nb
+    }
+    bot(list_models)
 
 
-main("test")
+main()
