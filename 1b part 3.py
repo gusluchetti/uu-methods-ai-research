@@ -1,5 +1,6 @@
 from Levenshtein import distance
 
+
 def bestMatchWord(word_to_match, wordtype_l):
     '''takes misspelled word and matches it with nearest value of the list of words of the same type.
     The used distance in the levenshtein edit distance.
@@ -18,10 +19,10 @@ def bestMatchWord(word_to_match, wordtype_l):
     
     if mindist <= 3:
         return match, mindist
-    
     else:
         return False
-    
+
+
 def bestMatchList(list_of_words, wordtype_list):
     'same as bestMatch but with lists as input'
     bestdist = 4
@@ -29,7 +30,7 @@ def bestMatchList(list_of_words, wordtype_list):
     misspelled = ""
     dist = ""
     match = "" 
-    
+
     for word in list_of_words:
         if bestMatchWord(word, wordtype_list):
             match, dist = bestMatchWord(word, wordtype_list)
@@ -37,18 +38,20 @@ def bestMatchList(list_of_words, wordtype_list):
                 bestdist = dist
                 bestmatch = match
                 misspelled = word
-    
+
     if bestdist == 4:
         return False
     else:
         return bestmatch, misspelled
-'WE ADDED SWEDISH AND WORLD IN THE TYPES OF FOOD SINCE THEY WERE IN THE EXAMPLES FOR THE TASK, EVEN THOUGH THEY ARE NOT IN OUR DATABASE'
+
+# 'WE ADDED SWEDISH AND WORLD IN THE TYPES OF FOOD
+# SINCE THEY WERE IN THE EXAMPLES FOR THE TASK, EVEN THOUGH THEY ARE NOT IN OUR DATABASE'
 food_types = ["african", "any", "asian oriental", "australasian", "bistro", "british", "catalan", "chinese", "cuban",
                       "european", "french", "fusion","gastropub", "indian","international", "italian", "jamaican","japanese",
                       "korean","lebanese","mediterranean","modern european","moroccan", "north american", "persian","polynesian","portuguese","romanian",
                       "seafood", "spanish","steakhouse","swiss","thai","traditional","turkish","tuscan","vietnamese","world","swedish"]  
-sentence_string = "Find a Cuban restaurant in the center"
-'preprocessing'
+sentence_string = "I'm looking for a moderately priced restaurant in the west part of town"
+# preprocessing
 sentence_string = sentence_string.lower()
 sentence_string = sentence_string.replace("north american", "northamerican")
 sentence_string = sentence_string.replace("modern european", "moderneuropean")
@@ -99,7 +102,11 @@ else:
 one for pricerange'''
 type_index = -2
 type_candidates = []
-for word in sentence:
+for i, word in enumerate(sentence):
+    if word in food_types and word != "any":
+        type_of_food = word
+        type_index = sentence.index(word)
+        break
     if (word == "food" or word == "restaurant") and (sentence.index(word) != 0) and (sentence.index(word) - 1 != pricerange_index):
         type_candidates.append(sentence[sentence.index(word) - 1])
     elif (word == "serving" or word == "serves") and (sentence.index(word) != sentence.index(sentence[-1])) and (sentence.index(word) + 1 != pricerange_index):
@@ -120,7 +127,7 @@ elif "west" in sentence:
     location_index = sentence.index("west")
     location = "west"
 elif "east" in sentence:
-    location_index = sentence.index("east")    
+    location_index = sentence.index("east")
     location = "east"
 elif "centre" in sentence:
     location_index = sentence.index("centre")
@@ -148,4 +155,3 @@ print(location_index)
 print(type_of_food)
 print(pricerange)
 print(location)
-
