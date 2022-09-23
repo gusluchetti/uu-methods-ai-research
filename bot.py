@@ -11,6 +11,7 @@ def suggest_restaurants():
   sug = ['chinese, NY, cheap', 'italian, Napoli, expensive', 'greek, Athens, cheap']
   return sug
 
+
 # passing functions that return predictions for the bot to use
 def bot(list_models):
     print("Hello! I'm a restaurant recommendation bot! \n")
@@ -108,4 +109,3 @@ Please select a classification method (first two are baseline systems):
               break
           if label != 'inform':
             print('Sorry we are out of options matching your criteria. Lets try again!')
-            
