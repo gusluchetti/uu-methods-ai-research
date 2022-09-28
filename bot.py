@@ -134,12 +134,15 @@ def set_current_node(new_node):
 
 
 def traverse(mode, sys_utt, conditions):
+    global form
     """Traversing utterance to update form states"""
-    logging.debug(f"Utterance: {sys_utt}")
+    logging.debug(f"\nStart: Utterance: {sys_utt}")
     logging.debug(f"Current mode -> {mode}")
     logging.debug(f"Conditions -> {conditions}")
 
-    if mode.split("_", 1)[0] in ["ask", "extract", "welcome"]:
+    mode_split = mode.split("_", 1)[0]
+    logging.debug(f"mode split? {mode_split}")
+    if mode_split in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classifier(user_utt)
         logging.debug(f"classified utterance as {label}")
@@ -149,6 +152,7 @@ def traverse(mode, sys_utt, conditions):
             set_form("cuisine", extract_cuisine(user_utt))
             set_form("area", extract_area(user_utt))
             set_form("price_range", extract_price_range(user_utt))
+            logging.debug(f"Forms -> {form}")
         elif "extract" in mode:
             field = eval("extract_{}(user_utt)".format(mode.split("_", 1)[1]))
             set_form(mode.split("_", 1)[1], field)
@@ -172,9 +176,13 @@ def traverse(mode, sys_utt, conditions):
         label = classifier(user_utt)
 
     for i, condition in enumerate(conditions):
+        logging.debug(f"condition {i}: {condition}")
+        logging.debug(f"eval: {eval(condition)}")
+
         if eval(condition):
             next_node = traversal_tree[current_node][i]
             break
+
         set_current_node(next_node)
 
 
@@ -200,7 +208,7 @@ Please select a classification method (first two are baseline systems):
 
     global current_node
     while current_node != "goodbye":
-        logging.debug(current_node)
+        # ** = all args from nodes_exec
         traverse(**nodes_exec[current_node])
         if current_node == "goodbye":
             print("Goodbye!")
