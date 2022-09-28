@@ -23,9 +23,6 @@ restaurants.insert(1, "length_of_stay", random_length_of_stay, True)
 restaurants.head()
 
 
-# In[21]:
-
-
 def find_all_restaurants(df, preferences):
     if len(preferences) == 3:
         result = df.loc[
@@ -52,16 +49,10 @@ def find_all_restaurants(df, preferences):
         return "Sorry, there is no restaurant that conforms to you requirements."
 
 
-# In[9]:
-
-
 find_all_restaurants(
-    pd.read_csv(r"C:\Users\niels\restaurant_info(1).csv"),
+    pd.read_csv(r"restaurant_info.csv"),
     ["moderate", "centre", "british"],
 )
-
-
-# In[10]:
 
 
 index = np.random.choice(len(globals()["remaining_restaurants"].index))
@@ -90,20 +81,8 @@ def toString_recommended_restaurant(index):
     return " "
 
 
-# In[11]:
-
-
-print(toString_recommended_restaurant(index))
-
-
-# In[12]:
-
-
-globals()["remaining_restaurants"].drop(index, axis=0, inplace=True)
-index = np.random.choice(len(globals()["remaining_restaurants"].index))
-print(toString_recommended_restaurant(index))
-if len(globals()["remaining_restaurants"]) >= 1:
-    globals()["remaining_restaurants"].drop(index, axis=0, inplace=True)
-
-
-# In[ ]:
+# globals()["remaining_restaurants"].drop(index, axis=0, inplace=True)
+# index = np.random.choice(len(globals()["remaining_restaurants"].index))
+# print(toString_recommended_restaurant(index))
+# if len(globals()["remaining_restaurants"]) >= 1:
+# globals()["remaining_restaurants"].drop(index, axis=0, inplace=True)
