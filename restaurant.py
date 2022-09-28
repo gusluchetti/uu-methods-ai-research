@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import random
 
-restaurants = pd.read_csv(r"C:\Users\niels\restaurant_info(1).csv")
+restaurants = pd.read_csv(r"restaurant_info.csv")
 food_quality = ["bad food", "okay food", "good food"]
 crowdedness = ["not busy", "busy"]
 length_of_stay = ["short", "normal", "long"]
