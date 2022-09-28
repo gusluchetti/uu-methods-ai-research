@@ -1,6 +1,8 @@
 import logging
+import restaurant
+import type_match_ls
 
-logging.basicConfig(filename="example.log", encoding="utf-8", level=logging.DEBUG)
+logging.basicConfig(filename="bot.log", encoding="utf-8", level=logging.DEBUG)
 
 traversal_tree = {
     "welcome": ["welcome", "test_cuisine"],
@@ -72,26 +74,16 @@ form = {"area": "", "cuisine": "", "price_range": ""}
 suggestions = []
 
 
-# TODO: update with type_match_ls.py logic
 def extract_cuisine(utt):
-    if "chinese" in utt:
-        return "chinese"
-    else:
-        return ""
+    return type_match_ls.extract_food(utt)
 
 
 def extract_area(utt):
-    if "ny" in utt:
-        return "ny"
-    else:
-        return ""
+    return type_match_ls.extract_area(utt)
 
 
 def extract_price_range(utt):
-    if "cheap" in utt:
-        return "cheap"
-    else:
-        return ""
+    return type_match_ls.extract_pricerange(utt)
 
 
 # TODO: update with whichever classification model we choose
