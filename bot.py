@@ -1,3 +1,5 @@
+import logging
+logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
 traversal_tree = {
     'welcome': ['welcome', 'test_cuisine'],
@@ -10,28 +12,56 @@ traversal_tree = {
     'confirm_choice': ['welcome', 'suggest_restaurant'],
     'suggest_restaurant': ['suggest_restaurant', 'welcome', 'goodbye']
 }
-#TODO: add optional sys_dialog for failing conditions
+# TODO: add optional sys_dialog for failing conditions
 nodes_exec = {
-    'welcome':  {'mode':'welcome', 'sys_utt':'Hello! What would you like to eat?\n', 
-                 'conditions': ['label!="inform"', 'True']},
-    'test_cuisine':  {'mode':'test', 'sys_utt': '', 
-                     'conditions': ['not get_form("cuisine")', 'True']},
-    'ask_cuisine':  {'mode':'extract_cuisine', 'sys_utt': 'What type of food would you like to eat?\n', 
-                     'conditions': ['not get_form("cuisine")', 'True']},
-    'test_area':  {'mode':'test', 'sys_utt': '', 
-                   'conditions': ['not get_form("area")', 'True']},
-    'ask_area': {'mode':'extract_area', 'sys_utt': 'Where would you like to eat?\n', 
-                 'conditions': ['not get_form("area")', 'True']},
-    'test_price_range': {'mode':'test', 'sys_utt': '', 
-                         'conditions': ['not get_form("price_range")', 'True']},
-    'ask_price_range':  {'mode':'extract_price_range', 'sys_utt': 'How pricy you want the food to be?\n', 
-                         'conditions': ['not get_form("price_range")', 'True']},
-    'confirm_choice': {'mode':'confirm', 'sys_utt': 'You would like to eat {}, {} food in {}, correct?\n', 
-                       'conditions': ["label in ['negate','deny']", 'True']},
-    'suggest_restaurant': {'mode':'suggest', 'sys_utt': 'Would you like to eat there: {}\n', 
-                           'conditions': ["label in ['negate','deny'] and len(suggestions)>0", 'len(suggestions)==0', 'True']},
+    'welcome':
+        {'mode':'welcome',
+         'sys_utt':'Hello! What would you like to eat?\n',
+         'conditions': ['label!="inform"', 'True']
+         },
+    'test_cuisine':
+        {'mode':'test',
+         'sys_utt': '',
+         'conditions': ['not get_form("cuisine")', 'True']
+         },
+    'ask_cuisine':
+        {'mode':'extract_cuisine',
+         'sys_utt': 'What type of food would you like to eat?\n',
+         'conditions': ['not get_form("cuisine")', 'True']
+         },
+    'test_area':
+        {'mode':'test',
+         'sys_utt': '',
+         'conditions': ['not get_form("area")', 'True']
+         },
+    'ask_area':
+        {'mode':'extract_area',
+         'sys_utt': 'Where would you like to eat?\n',
+         'conditions': ['not get_form("area")', 'True']
+         },
+    'test_price_range':
+        {'mode':'test',
+         'sys_utt': '',
+         'conditions': ['not get_form("price_range")', 'True']
+         },
+    'ask_price_range':
+        {'mode':'extract_price_range',
+         'sys_utt': 'How pricy you want the food to be?\n',
+         'conditions': ['not get_form("price_range")', 'True']
+         },
+    'confirm_choice':
+        {'mode':'confirm',
+         'sys_utt': 'You would like to eat {}, {} food in {}, correct?\n',
+         'conditions': ["label in ['negate','deny']", 'True']
+         },
+    'suggest_restaurant':
+        {'mode':'suggest',
+         'sys_utt': 'Would you like to eat there: {}\n',
+         'conditions': ["label in ['negate','deny'] and len(suggestions)>0", 'len(suggestions)==0', 'True']
+         },
 }
 
+# initializing empty states
 current_node = 'welcome'
 form = {
     'area': '',
@@ -41,6 +71,7 @@ form = {
 suggestions = []
 
 
+# TODO: update with type_match_ls.py logic
 def extract_cuisine(utt):
   if 'chinese' in utt:
     return 'chinese'
@@ -56,11 +87,11 @@ def extract_price_range(utt):
     return 'cheap'
   else:
     return ''
+
+
+# TODO: update with whichever classification model we choose
 def classify(utt):
   return utt.split()[0]
-def set_suggestions():
-  global suggestions
-  suggestions = ['ChopChop, NY, 5$', 'TratoriaVerona, Napoli, 40$', 'Tzaziki, Athens, 1$']
 
 def reasoning_filter(extra_preferences, restaurant_df):
   """
@@ -79,10 +110,7 @@ def reasoning_filter(extra_preferences, restaurant_df):
   return df.loc[eval(super_rule)]
 
 
-def set_current_node(new_node):
-  global current_node 
-  current_node = new_node
-
+# get, set and reset form state
 def get_form(field):
   global form
   return form[field]
@@ -96,7 +124,18 @@ def reset_form():
   form = {field: '' for field in form}
 
 
+def set_suggestions():
+  global suggestions
+  suggestions = ['ChopChop, NY, 5$', 'TratoriaVerona, Napoli, 40$', 'Tzaziki, Athens, 1$']
+
+
+def set_current_node(new_node):
+  global current_node
+  current_node = new_node
+
+
 def traverse(mode, sys_utt, conditions):
+    """Traversing utterance to update form states"""
   if mode.split('_',1)[0] in ['ask','extract','welcome']:
     user_utt = input(sys_utt).lower()
     label = classify(user_utt)
@@ -123,20 +162,11 @@ def traverse(mode, sys_utt, conditions):
     label = classify(user_utt)
 
   for i, condition in enumerate(conditions):
-    print(f'i:{i}cond:{condition}')
+    logging.debug(f'i:{i}cond:{condition}')
     if eval(condition):
       next_node = traversal_tree[current_node][i]
       break
   set_current_node(next_node)
-
-def run():
-  global current_node
-  while current_node != 'goodbye':
-    print(current_node)
-    traverse(**nodes_exec[current_node])
-    if current_node == 'goodbye':
-      print('Goodbye')
-
 
 
 # passing functions that return predictions for the bot to use
@@ -158,21 +188,11 @@ Please select a classification method (first two are baseline systems):
         else:
             print("Model doesn't exist!")
     except:
-        print('whoops! - bad things happened somehow')
-
-    # starting bot up
- #   finished = False
- #   while not finished:
- #       utterance = input('>').lower()
- #       label = classifier(utterance)
- #       print(f"Your last input was labeled/classified as: {label}")
- #       if utterance == "forcequit" or label == "bye":
- #           finished = True
- #           print("Bye! See ya later.")
+        print("error! how'd you get here?")
 
     global current_node
     while current_node != 'goodbye':
+        logging.debug(current_node)
         traverse(**nodes_exec[current_node])
         if current_node == 'goodbye':
-            print('Goodbye')
-      
+        print('Goodbye!')
