@@ -1,5 +1,8 @@
 import logging
-logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(
+    filename='example.log',
+    encoding='utf-8',
+    level=logging.DEBUG)
 
 traversal_tree = {
     'welcome': ['welcome', 'test_cuisine'],
@@ -109,7 +112,7 @@ def reasoning_filter(extra_preferences, restaurant_df):
     }
 
     super_rule = ' and '.join([inference_rules[x] for x in extra_preferences])
-    return df.loc[eval(super_rule)]
+    return restaurant_df.loc[eval(super_rule)]
 
 
 # get, set and reset form state
@@ -181,16 +184,12 @@ Please select a classification method (first two are baseline systems):
 [3] - Logistic Regression
 [4] - Multinomial Naive-Bayes\n""")
 
-    # set desired classifier
     classifier = list_models["2"]
-    try:
-        if classifier_key in list_models.keys():
-            classifier = list_models[classifier_key]
-            print(f"Model {classifier} was selected!")
-        else:
-            print("Model doesn't exist!")
-    except:
-        print("error! how'd you get here?")
+    if classifier_key in list_models.keys():
+        classifier = list_models[classifier_key]
+        print(f"Model {classifier} was selected!")
+    else:
+        print("Using default model (keyword matching)")
 
     global current_node
     while current_node != 'goodbye':
