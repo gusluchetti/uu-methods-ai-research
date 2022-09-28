@@ -62,6 +62,22 @@ def set_suggestions():
   global suggestions
   suggestions = ['ChopChop, NY, 5$', 'TratoriaVerona, Napoli, 40$', 'Tzaziki, Athens, 1$']
 
+def reasoning_filter(extra_preferences, restaurant_df):
+  """
+  args :
+    extra_preferences - list of extra preferences
+    restaurant_df - dataframe with restaurants and their qualities
+  return : 
+    dataframe with restaurants that satisfy inference rules for all given extra_preferences
+  """
+  inference_rules = {'touristic': '(df["pricerange"] == "cheap") & (df["food_quality"] == "good") & (df["food"] != "romanian")',
+                   'asigned seats': '(df["crowdedness"] == "busy")',
+                   'children': '(df["length_of_stay"] != "long")',
+                   'romantic': '(df["crowdedness"] != "busy") & (df["length_of_stay"] == "long")'
+                   }
+  super_rule = ' and '.join([inference_rules[x] for x in extra_preferences])
+  return df.loc[eval(super_rule)]
+
 
 def set_current_node(new_node):
   global current_node 
