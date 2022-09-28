@@ -19,6 +19,14 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+import logging
+
+logging.basicConfig(
+    filename="bot.log",
+    encoding="utf-8",
+    format="%(levelname)s: %(message)s",
+    level=logging.DEBUG,
+)
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
@@ -32,19 +40,19 @@ def get_dataset(path):
     args: dataset file path
     return: DataFrame of dataset
     """
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = f.readlines()
         data = list(map(lambda x: x.rstrip("\n").split(" ", 1), data))
 
-    df = pd.DataFrame(np.array(data), columns=['label', 'text'])
+    df = pd.DataFrame(np.array(data), columns=["label", "text"])
     return df
 
 
 def build_label_dict(df):
     global label_dict
     # making label dict (turning labels into numbers)
-    df['label_id'] = df['label'].factorize()[0]
-    label_dict = df[['label_id', 'label']].drop_duplicates().set_index('label_id')
+    df["label_id"] = df["label"].factorize()[0]
+    label_dict = df[["label_id", "label"]].drop_duplicates().set_index("label_id")
     return label_dict
 
 
@@ -58,14 +66,14 @@ def preprocess(df):
     # if text contains "noise" or "tv_noise", remove it
     for index, row in df.iterrows():
         if "tv_noise" in row[1]:
-            row[1] = row[1].replace('tv_noise', '')
+            row[1] = row[1].replace("tv_noise", "")
         elif "noise" in row[1]:
-            row[1] = row[1].replace('noise', '')
+            row[1] = row[1].replace("noise", "")
         row[1] = row[1].strip()
 
     # if that makes the column empty, remove the row
     for i in range(len(df.index)):
-        text = df['text'][i]
+        text = df["text"][i]
         if not text:
             df = df.drop([i])
     return df
@@ -75,8 +83,8 @@ def preprocess(df):
 def set_majority_class(df):
     global majority_class
     """Returns majority label for a given dataframe with a label column"""
-    print(df, majority_class)
-    majority_class = df['label'].mode().to_string()
+    logging.debug(f"Majority class is {majority_class}")
+    majority_class = df["label"].mode().to_string()
     return majority_class
 
 
@@ -106,7 +114,7 @@ def make_train_test_split(df):
     # X - independent features (excluding target variable).
     # y - dependent variables (target we're looking to predict).
     X_train, X_test, y_train, y_test = train_test_split(
-        df['text'], df['label_id'], test_size=0.15, random_state=42
+        df["text"], df["label_id"], test_size=0.15, random_state=42
     )
 
     # train test split includes vectorizing
@@ -114,8 +122,8 @@ def make_train_test_split(df):
         sublinear_tf=True,  # scale the words frequency in logarithmic scale
         min_df=5,  # remove the words which has occurred in less than ‘min_df’ number of files
         ngram_range=(1, 2),  # don't know what role n-grams play in vectorisation
-        stop_words='english',  # it removes stop words which are predefined in ‘english’.
-        lowercase=True  # everything to lowercase
+        stop_words="english",  # it removes stop words which are predefined in ‘english’.
+        lowercase=True,  # everything to lowercase
     )
     return tfidf.fit_transform(X_train).toarray(), X_test, y_train, y_test
 
@@ -140,34 +148,30 @@ def tfidf_convert(utterance):
 
 
 def return_pred(label_id):
-    pred = label_dict['label'].iloc[label_id.item(0)]
-    print(f"Label ID: {label_id} \nActual Prediction: {pred}")
+    pred = label_dict["label"].iloc[label_id.item(0)]
+    logging.debug(f"Label ID: {label_id} \nActual Prediction: {pred}")
     return pred
 
 
 def predict_lr(utterance):
     global logistic_regression, tfidf, label_dict
     tfidf_ut = tfidf_convert(utterance)
-    return return_pred(
-        logistic_regression.predict(tfidf_ut)
-    )
+    return return_pred(logistic_regression.predict(tfidf_ut))
 
 
 def predict_mnb(utterance):
     global multinomial_nb, tfidf, label_dict
     tfidf_ut = tfidf_convert(utterance)
-    return return_pred(
-        multinomial_nb.predict(tfidf_ut)
-    )
+    return return_pred(multinomial_nb.predict(tfidf_ut))
 
 
 def main():
     """Prepares the dataset, model and runs the bot"""
     global label_dict, tfidf
     global logistic_regression, multinomial_nb
-    models_path = 'models/'
-    source_data = 'dialog_acts.dat'
-    df_file = 'df.csv'
+    models_path = "models/"
+    source_data = "dialog_acts.dat"
+    df_file = "df.csv"
 
     print(f"Arguments: {sys.argv}")
     if os.path.exists(df_file) and "reprocess" not in sys.argv:
@@ -189,20 +193,20 @@ def main():
     X_train, X_test, y_train, y_test = make_train_test_split(df)
 
     if "remodel" not in sys.argv:
-        if os.path.exists(models_path+"lr.sav"):
+        if os.path.exists(models_path + "lr.sav"):
             print("Reusing Logistic Regression model...")
-            logistic_regression = pickle.load(open(models_path+'lr.sav', 'rb'))
-        if os.path.exists(models_path+"mnb.sav"):
+            logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
+        if os.path.exists(models_path + "mnb.sav"):
             print("Reusing Multinomial NB model...")
-            multinomial_nb = pickle.load(open(models_path+'mnb.sav', 'rb'))
+            multinomial_nb = pickle.load(open(models_path + "mnb.sav", "rb"))
     else:
         print("Building models from scratch! This might take a while.")
         logistic_regression = train_logistic_regression_model(X_train, y_train)
         multinomial_nb = train_NB_classifier_model(X_train, y_train)
 
         print("Models have been fit! Saving them for future use... \n")
-        pickle.dump(logistic_regression, open(models_path+'lr.sav', 'wb'))
-        pickle.dump(multinomial_nb, open(models_path+'mnb.sav', 'wb'))
+        pickle.dump(logistic_regression, open(models_path + "lr.sav", "wb"))
+        pickle.dump(multinomial_nb, open(models_path + "mnb.sav", "wb"))
 
     # the following functions have a single string as their argument
     # and return a label as a classification prediction
@@ -210,7 +214,7 @@ def main():
         "1": get_majority_class,
         "2": single_keyword_matching,
         "3": predict_lr,
-        "4": predict_mnb
+        "4": predict_mnb,
     }
     bot(list_models)
 
