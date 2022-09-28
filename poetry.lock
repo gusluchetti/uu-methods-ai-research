@@ -56,6 +56,14 @@ python-versions = ">=3.6"
 rapidfuzz = ">=2.3.0,<3.0.0"
 
 [[package]]
+name = "logging"
+version = "0.4.9.6"
+description = "A logging module for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "numpy"
 version = "1.23.3"
 description = "NumPy is the fundamental package for array computing with Python."
@@ -243,7 +251,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "20c6cf753e0f8564d74947b597eff96119c34f10c1c2d9faf174e8bd90100e97"
+content-hash = "9d700452c6dc93c48486d3f20a65bc26dabf439dad4e28eb9b8faba5fe39bc1d"
 
 [metadata.files]
 attrs = [
@@ -460,6 +468,9 @@ Levenshtein = [
     {file = "Levenshtein-0.20.3-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:518a7ae84c90e4e21b1cb83b95ac4a746b2842e1ff90729486be953b928d3a9d"},
     {file = "Levenshtein-0.20.3-pp39-pypy39_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6f59a05709cb9e372937a9820780648c07099fe70e85e099e0b5e9568347b012"},
     {file = "Levenshtein-0.20.3.tar.gz", hash = "sha256:9f7fb9d4e64e9663c2bed51e5c6beca4e88d62d30a5072b2e805ade09adf9acc"},
+]
+logging = [
+    {file = "logging-0.4.9.6.tar.gz", hash = "sha256:26f6b50773f085042d301085bd1bf5d9f3735704db9f37c1ce6d8b85c38f2417"},
 ]
 numpy = [
     {file = "numpy-1.23.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c9f707b5bb73bf277d812ded9896f9512a43edff72712f31667d0a8c2f8e71ee"},
