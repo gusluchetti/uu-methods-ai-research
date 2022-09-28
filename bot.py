@@ -149,6 +149,7 @@ def set_current_node(new_node):
 
 def traverse(mode, sys_utt, conditions):
     """Traversing utterance to update form states"""
+    logging.debug(f"{mode}\n{sys_utt}\n{conditions}")
     if mode.split("_", 1)[0] in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classify(user_utt)
