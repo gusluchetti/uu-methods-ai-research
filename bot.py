@@ -86,11 +86,6 @@ def extract_price_range(utt):
     return type_match_ls.extract_pricerange(utt)
 
 
-# TODO: update with whichever classification model we choose
-def classify(utt):
-    return utt.split()[0]
-
-
 def reasoning_filter(extra_preferences, restaurant_df):
     """
     args:
@@ -144,7 +139,7 @@ def traverse(mode, sys_utt, conditions):
     logging.debug(f"{mode}\n{sys_utt}\n{conditions}")
     if mode.split("_", 1)[0] in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
-        label = classify(user_utt)
+        label = classifier(user_utt)
     if mode == "welcome":
         reset_form()
         set_form("cuisine", extract_cuisine(user_utt))
@@ -160,7 +155,7 @@ def traverse(mode, sys_utt, conditions):
         if len(suggestions) > 0:
             suggestion = suggestions.pop(0)
             user_utt = input(sys_utt.format(suggestion)).lower()
-            label = classify(user_utt)
+            label = classifier(user_utt)
         else:
             print("Sorry. I couldn't find appropriate restaurant.")
     elif mode == "confirm":
@@ -169,7 +164,7 @@ def traverse(mode, sys_utt, conditions):
                 get_form("price_range"), get_form("cuisine"), get_form("area")
             )
         ).lower()
-        label = classify(user_utt)
+        label = classifier(user_utt)
 
     for i, condition in enumerate(conditions):
         logging.debug(f"i:{i}cond:{condition}")
@@ -181,6 +176,7 @@ def traverse(mode, sys_utt, conditions):
 
 # passing functions that return predictions for the bot to use
 def bot(list_models):
+    global classifier
     print("Hello! I'm a restaurant recommendation bot! \n")
     classifier_key = input(
         """
