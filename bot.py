@@ -1,8 +1,7 @@
 import logging
-import restaurant
 import type_match_ls
+import restaurant
 
-logging.basicConfig(filename="bot.log", encoding="utf-8", level=logging.DEBUG)
 
 traversal_tree = {
     "welcome": ["welcome", "test_cuisine"],
@@ -68,7 +67,7 @@ nodes_exec = {
     },
 }
 
-# initializing empty states
+# starting states
 current_node = "welcome"
 form = {"area": "", "cuisine": "", "price_range": ""}
 suggestions = []
@@ -136,7 +135,10 @@ def set_current_node(new_node):
 
 def traverse(mode, sys_utt, conditions):
     """Traversing utterance to update form states"""
-    logging.debug(f"{mode}\n{sys_utt}\n{conditions}")
+    logging.debug(f"Utterance: {sys_utt}")
+    logging.debug(f"Current mode -> {mode}")
+    logging.debug(f"Conditions -> {conditions}")
+
     if mode.split("_", 1)[0] in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classifier(user_utt)
@@ -167,7 +169,6 @@ def traverse(mode, sys_utt, conditions):
         label = classifier(user_utt)
 
     for i, condition in enumerate(conditions):
-        logging.debug(f"i:{i}cond:{condition}")
         if eval(condition):
             next_node = traversal_tree[current_node][i]
             break
