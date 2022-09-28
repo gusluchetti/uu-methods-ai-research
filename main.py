@@ -19,14 +19,24 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+# configuring logging
 import logging
 
 logging.basicConfig(
-    filename="bot.log",
-    encoding="utf-8",
-    format="%(levelname)s: %(message)s",
     level=logging.DEBUG,
+    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+    datefmt="%m-%d %H:%M",
+    filename="main.log",
+    filemode="w",
 )
+# define a Handler which writes INFO messages or higher to the sys.stderr
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+if "debug" in sys.argv:
+    console.setLevel(logging.DEBUG)
+    print("DEBUG mode enabled")
+# add the handler to the root logger
+logging.getLogger("").addHandler(console)
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
@@ -173,7 +183,6 @@ def main():
     source_data = "dialog_acts.dat"
     df_file = "df.csv"
 
-    print(f"Arguments: {sys.argv}")
     if os.path.exists(df_file) and "reprocess" not in sys.argv:
         print("Found existing processed dataframe! Using it instead...")
         df = pd.read_csv(df_file)

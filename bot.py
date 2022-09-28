@@ -142,15 +142,18 @@ def traverse(mode, sys_utt, conditions):
     if mode.split("_", 1)[0] in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classifier(user_utt)
-    if mode == "welcome":
-        reset_form()
-        set_form("cuisine", extract_cuisine(user_utt))
-        set_form("area", extract_area(user_utt))
-        set_form("price_range", extract_price_range(user_utt))
-    elif "extract" in mode:
-        field = eval("extract_{}(user_utt)".format(mode.split("_", 1)[1]))
-        set_form(mode.split("_", 1)[1], field)
-    elif mode == "suggest":
+        logging.debug(f"classified utterance as {label}")
+
+        if mode == "welcome":
+            reset_form()
+            set_form("cuisine", extract_cuisine(user_utt))
+            set_form("area", extract_area(user_utt))
+            set_form("price_range", extract_price_range(user_utt))
+        elif "extract" in mode:
+            field = eval("extract_{}(user_utt)".format(mode.split("_", 1)[1]))
+            set_form(mode.split("_", 1)[1], field)
+
+    if mode == "suggest":
         global suggestions
         if len(suggestions) == 0:
             set_suggestions()
@@ -191,7 +194,7 @@ Please select a classification method (first two are baseline systems):
     classifier = list_models["2"]
     if classifier_key in list_models.keys():
         classifier = list_models[classifier_key]
-        print(f"Model {classifier} was selected!")
+        print(f"Model number {classifier_key} was selected!")
     else:
         print("Using default model (keyword matching)")
 
