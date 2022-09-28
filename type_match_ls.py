@@ -160,3 +160,12 @@ def extract_preference(user_utt):
             'pricerange': pricerange,
             'food': type_of_food
             }
+
+def extract_food(user_utt):
+    return extract_preference(user_utt)['food']
+
+def extract_area(user_utt):
+    return extract_preference(user_utt)['area']
+
+def extract_pricerange(user_utt):
+    return extract_preference(user_utt)['pricerange']
