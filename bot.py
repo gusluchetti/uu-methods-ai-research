@@ -91,23 +91,25 @@ def extract_price_range(utt):
 
 # TODO: update with whichever classification model we choose
 def classify(utt):
-  return utt.split()[0]
+    return utt.split()[0]
+
 
 def reasoning_filter(extra_preferences, restaurant_df):
-  """
-  args :
+    """
+  args:
     extra_preferences - list of extra preferences
     restaurant_df - dataframe with restaurants and their qualities
-  return : 
-    dataframe with restaurants that satisfy inference rules for all given extra_preferences
-  """
-  inference_rules = {'touristic': '(df["pricerange"] == "cheap") & (df["food_quality"] == "good") & (df["food"] != "romanian")',
-                   'asigned seats': '(df["crowdedness"] == "busy")',
-                   'children': '(df["length_of_stay"] != "long")',
-                   'romantic': '(df["crowdedness"] != "busy") & (df["length_of_stay"] == "long")'
-                   }
-  super_rule = ' and '.join([inference_rules[x] for x in extra_preferences])
-  return df.loc[eval(super_rule)]
+  returns: dataframe with restaurants that satisfy inference rules for all given extra_preferences
+    """
+    inference_rules = {
+      'touristic': '(df["pricerange"] == "cheap") & (df["food_quality"] == "good") & (df["food"] != "romanian")',
+      'assigned seats': '(df["crowdedness"] == "busy")',
+      'children': '(df["length_of_stay"] != "long")',
+      'romantic': '(df["crowdedness"] != "busy") & (df["length_of_stay"] == "long")'
+    }
+
+    super_rule = ' and '.join([inference_rules[x] for x in extra_preferences])
+    return df.loc[eval(super_rule)]
 
 
 # get, set and reset form state
@@ -135,7 +137,7 @@ def set_current_node(new_node):
 
 
 def traverse(mode, sys_utt, conditions):
-    """Traversing utterance to update form states"""
+  """Traversing utterance to update form states"""
   if mode.split('_',1)[0] in ['ask','extract','welcome']:
     user_utt = input(sys_utt).lower()
     label = classify(user_utt)
@@ -195,4 +197,4 @@ Please select a classification method (first two are baseline systems):
         logging.debug(current_node)
         traverse(**nodes_exec[current_node])
         if current_node == 'goodbye':
-        print('Goodbye!')
+            print('Goodbye!')
