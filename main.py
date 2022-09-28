@@ -170,7 +170,7 @@ def main():
     df_file = 'df.csv'
 
     print(f"Arguments: {sys.argv}")
-    if os.path.exists(df_file) and "reprocess" in sys.argv:
+    if os.path.exists(df_file) and "reprocess" not in sys.argv:
         print("Found existing processed dataframe! Using it instead...")
         df = pd.read_csv(df_file)
     else:
@@ -188,10 +188,13 @@ def main():
     label_dict = build_label_dict(df)
     X_train, X_test, y_train, y_test = make_train_test_split(df)
 
-    if (os.path.exists(models_path+"lr.sav") or os.path.exists(models_path+"mnb.sav")) and "remodel" in sys.argv:
-        print("Found saved models! Reusing them...")
-        logistic_regression = pickle.load(open(models_path+'lr.sav', 'rb'))
-        multinomial_nb = pickle.load(open(models_path+'mnb.sav', 'rb'))
+    if "remodel" not in sys.argv:
+        if os.path.exists(models_path+"lr.sav"):
+            print("Reusing Logistic Regression model...")
+            logistic_regression = pickle.load(open(models_path+'lr.sav', 'rb'))
+        if os.path.exists(models_path+"mnb.sav"):
+            print("Reusing Multinomial NB model...")
+            multinomial_nb = pickle.load(open(models_path+'mnb.sav', 'rb'))
     else:
         print("Building models from scratch! This might take a while.")
         logistic_regression = train_logistic_regression_model(X_train, y_train)
