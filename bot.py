@@ -2,64 +2,70 @@ import logging
 import type_match_ls
 import restaurant
 
-
-traversal_tree = {
-    "welcome": ["welcome", "test_cuisine"],
-    "test_cuisine": ["ask_cuisine", "test_area"],
-    "ask_cuisine": ["ask_cuisine", "test_cuisine"],
-    "test_area": ["ask_area", "test_price_range"],
-    "ask_area": ["ask_area", "test_area"],
-    "test_price_range": ["ask_price_range", "confirm_choice"],
-    "ask_price_range": ["ask_price_range", "test_price_range"],
-    "confirm_choice": ["welcome", "suggest_restaurant"],
-    "suggest_restaurant": ["suggest_restaurant", "welcome", "goodbye"],
-}
 # TODO: add optional sys_dialog for failing conditions
-nodes_exec = {
+dialog_tree = {
     "welcome": {
         "mode": "welcome",
         "sys_utt": "Hello! What would you like to eat?\n",
-        "conditions": ['label!="inform"', "True"],
+        "exits": ["welcome", "welcome", "test_food"],
+        "exit_conditions": ['"restart" in user_utt', 'label!="inform"', "True"],
     },
-    "test_cuisine": {
+    "test_food": {
         "mode": "test",
         "sys_utt": "",
-        "conditions": ['not get_form("cuisine")', "True"],
+        "exits": ["ask_food", "test_area"],
+        "exit_conditions": ['not get_form("food")', "True"],
     },
-    "ask_cuisine": {
-        "mode": "extract_cuisine",
+    "ask_food": {
+        "mode": "extract_food",
         "sys_utt": "What type of food would you like to eat?\n",
-        "conditions": ['not get_form("cuisine")', "True"],
+        "exits": ["ask_food", "test_food"],
+        "exit_conditions": ['not get_form("food")', "True"],
     },
     "test_area": {
         "mode": "test",
         "sys_utt": "",
-        "conditions": ['not get_form("area")', "True"],
+        "exits": ["ask_area", "test_pricerange"],
+        "exit_conditions": ['not get_form("area")', "True"],
     },
     "ask_area": {
         "mode": "extract_area",
         "sys_utt": "Where would you like to eat?\n",
-        "conditions": ['not get_form("area")', "True"],
+        "exits": ["ask_area", "test_area"],
+        "exit_conditions": ['not get_form("area")', "True"],
     },
-    "test_price_range": {
+    "test_pricerange": {
         "mode": "test",
         "sys_utt": "",
-        "conditions": ['not get_form("price_range")', "True"],
+        "exits": ["ask_pricerange", "ask_extra_preferences"],
+        "exit_conditions": ['not get_form("pricerange")', "True"],
     },
-    "ask_price_range": {
-        "mode": "extract_price_range",
+    "ask_pricerange": {
+        "mode": "extract_pricerange",
         "sys_utt": "How pricy you want the food to be?\n",
-        "conditions": ['not get_form("price_range")', "True"],
+        "exits": ["ask_pricerange", "test_pricerange"],
+        "exit_conditions": ['not get_form("pricerange")', "True"],
+    },
+    "ask_extra_preferences": {
+        "mode": "extract_extra_preferences",
+        "sys_utt": "Do you have any extra preferences?\n",
+        "exits": ["ask_extra_preferences", "confirm_choice"],
+        "exit_conditions": ['not get_form("extra_preferences")', "True"],
     },
     "confirm_choice": {
         "mode": "confirm",
         "sys_utt": "You would like to eat {}, {} food in {}, correct?\n",
-        "conditions": ["label in ['negate','deny']", "True"],
+        "exits": ["welcome", "suggest_restaurant"],
+        "exit_conditions": ["label in ['negate','deny']", "True"],
     },
     "suggest_restaurant": {
         "mode": "suggest",
         "sys_utt": "Would you like to eat there: {}\n",
-        "conditions": [
+        "exits": [
+            "suggest_restaurant", 
+            "welcome", 
+            "goodbye"],
+        "exit_conditions": [
             "label in ['negate','deny'] and len(suggestions)>0",
             "len(suggestions)==0",
             "True",
@@ -67,13 +73,19 @@ nodes_exec = {
     },
 }
 
+# if restart_flag = True:
+#     for value in dialog_tree.values():
+#       value['exits'].insert(0, 'welcome')
+#       value['exit_conditions'].insert(0, '"restart" in user_utt')
+
+
 # starting states
 current_node = "welcome"
-form = {"area": "", "cuisine": "", "price_range": ""}
+form = {"area": "", "food": "", "pricerange": "", "extra_preferences": []}
 suggestions = []
 
 
-def extract_cuisine(utt):
+def extract_food(utt):
     return type_match_ls.extract_food(utt)
 
 
@@ -81,8 +93,12 @@ def extract_area(utt):
     return type_match_ls.extract_area(utt)
 
 
-def extract_price_range(utt):
+def extract_pricerange(utt):
     return type_match_ls.extract_pricerange(utt)
+
+
+def extract_extra_preferences(utt):
+    return type_match_ls.extract_extra_preferences(utt)
 
 
 def reasoning_filter(extra_preferences, restaurant_df):
@@ -133,7 +149,12 @@ def set_current_node(new_node):
     current_node = new_node
 
 
-def traverse(mode, sys_utt, conditions):
+def traverse_dialog_tree(current_node):
+    mode = dialog_tree[current_node]['mode']
+    sys_utt = dialog_tree[current_node]['sys_utt']
+    exits = dialog_tree[current_node]['exits']
+    conditions = dialog_tree[current_node]['exit_conditions']
+
     global form
     """Traversing utterance to update form states"""
     logging.debug(f"\nStart: Utterance: {sys_utt}")
@@ -149,9 +170,9 @@ def traverse(mode, sys_utt, conditions):
 
         if mode == "welcome":
             reset_form()
-            set_form("cuisine", extract_cuisine(user_utt))
+            set_form("food", extract_food(user_utt))
             set_form("area", extract_area(user_utt))
-            set_form("price_range", extract_price_range(user_utt))
+            set_form("pricerange", extract_pricerange(user_utt))
             logging.debug(f"Forms -> {form}")
         elif "extract" in mode:
             field = eval("extract_{}(user_utt)".format(mode.split("_", 1)[1]))
@@ -170,7 +191,7 @@ def traverse(mode, sys_utt, conditions):
     elif mode == "confirm":
         user_utt = input(
             sys_utt.format(
-                get_form("price_range"), get_form("cuisine"), get_form("area")
+                get_form("pricerange"), get_form("food"), get_form("area")
             )
         ).lower()
         label = classifier(user_utt)
@@ -180,10 +201,10 @@ def traverse(mode, sys_utt, conditions):
         logging.debug(f"eval: {eval(condition)}")
 
         if eval(condition):
-            next_node = traversal_tree[current_node][i]
+            next_node = exits[i]
             break
 
-        set_current_node(next_node)
+    set_current_node(next_node)
 
 
 # passing functions that return predictions for the bot to use
@@ -208,7 +229,6 @@ Please select a classification method (first two are baseline systems):
 
     global current_node
     while current_node != "goodbye":
-        # ** = all args from nodes_exec
-        traverse(**nodes_exec[current_node])
+        traverse_dialog_tree(current_node)
         if current_node == "goodbye":
             print("Goodbye!")
