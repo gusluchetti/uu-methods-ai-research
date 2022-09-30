@@ -1,8 +1,10 @@
 # local imports
 import type_match_ls
 import restaurant
-import base_logger
 
+import logging
+
+log = logging.getLogger(__name__)
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -152,7 +154,7 @@ def set_suggestions():
             form["extra_preference"],
         ],
     )
-    logger.debug(f"\n {len(suggestions)} suggestions possible -> {suggestions}")
+    log.debug(f"\n {len(suggestions)} suggestions possible -> {suggestions}")
 
 
 def set_current_node(new_node):
@@ -166,9 +168,9 @@ def traverse_dialog_tree(current_node):
     exits = dialog_tree[current_node]["exits"]
     conditions = dialog_tree[current_node]["exit_conditions"]
 
-    global form, logger
+    global form
     """Traversing utterance to update form states"""
-    logger.debug(
+    log.debug(
         f"\nCurrent Node: {current_node}\nMode: {mode}\nExits: {exits}\nConditions: {conditions}\nForm: {form}"
     )
 
@@ -176,7 +178,7 @@ def traverse_dialog_tree(current_node):
     if mode_split[0] in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classifier(user_utt)
-        logger.debug(f"classified utterance as {label}")
+        log.debug(f"classified utterance as {label}")
 
         if mode == "welcome":
             reset_form()
@@ -207,7 +209,7 @@ def traverse_dialog_tree(current_node):
         label = classifier(user_utt)
 
     for i, condition in enumerate(conditions):
-        logger.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
+        log.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
         if eval(condition):
             next_node = exits[i]
             break
@@ -217,10 +219,6 @@ def traverse_dialog_tree(current_node):
 
 # passing functions that return predictions for the bot to use
 def start(list_models):
-    global logger
-    logger = base_logger.get_logger()
-    print(logger.name)
-
     global classifier
     print("\nHello! I'm a restaurant recommendation bot!")
     classifier_key = input(
