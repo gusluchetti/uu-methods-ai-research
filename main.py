@@ -21,23 +21,27 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-# create formatter
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-# add formatter to ch, and add it to logger
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+console = logging.StreamHandler(stream=sys.stdout)
+file_handler = logging.FileHandler(filename="tmp.log")
+formatter = logging.Formatter(
+    "(%(process)d) %(asctime)s %(name)s (line %(lineno)s) | %(levelname)s %(message)s"
+)
 
-if "debug" not in sys.argv:
-    ch.setLevel(logging.INFO)
-    logging.info("Running on production mode")
+# if on debug mode, print everything that would be logged
+if "debug" in sys.argv:
+    console.setLevel(logging.DEBUG)
+    print("Running on debug mode (debug arg)")
 else:
-    logging.debug("Running on DEBUG mode")
-logger.addHandler(ch)
+    console.setLevel(logging.INFO)
+    print("Running normally")
+
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+console.setFormatter(formatter)
+logger.addHandler(console)
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
@@ -94,7 +98,7 @@ def preprocess(df):
 def set_majority_class(df):
     global majority_class
     """Returns majority label for a given dataframe with a label column"""
-    logging.debug(f"Majority class is {majority_class}")
+    logger.debug(f"Majority class is {majority_class}")
     majority_class = df["label"].mode().to_string()
     return majority_class
 
@@ -160,7 +164,7 @@ def tfidf_convert(utterance):
 
 def return_pred(label_id):
     pred = label_dict["label"].iloc[label_id.item(0)]
-    logging.debug(f"Label ID: {label_id} \nActual Prediction: {pred}")
+    logger.debug(f"Label ID: {label_id} \nActual Prediction: {pred}")
     return pred
 
 

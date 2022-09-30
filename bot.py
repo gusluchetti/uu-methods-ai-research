@@ -1,7 +1,10 @@
 import pandas as pd
 import type_match_ls
 import restaurant
+
 import logging
+
+logger = logging.getLogger()
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -166,15 +169,15 @@ def traverse_dialog_tree(current_node):
 
     global form
     """Traversing utterance to update form states"""
-    logging.debug(f"Current mode -> {mode}")
-    logging.debug(f"Conditions -> {conditions}")
+    logger.debug(f"Current mode -> {mode}")
+    logger.debug(f"Conditions -> {conditions}")
 
     mode_split = mode.split("_", 1)[0]
-    logging.debug(f"mode split? {mode_split}")
+    logger.debug(f"mode split? {mode_split}")
     if mode_split in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classifier(user_utt)
-        logging.debug(f"classified utterance as {label}")
+        logger.debug(f"classified utterance as {label}")
 
         if mode == "welcome":
             reset_form()
@@ -182,14 +185,14 @@ def traverse_dialog_tree(current_node):
             set_form("area", extract_area(user_utt))
             set_form("pricerange", extract_pricerange(user_utt))
             set_form("extra_preference", extract_extra_preference(user_utt))
-            logging.debug(f"Forms -> {form}")
+            logger.debug(f"Forms -> {form}")
         elif "extract" in mode:
             field = eval("extract_{}(user_utt)".format(mode.split("_", 1)[1]))
             set_form(mode.split("_", 1)[1], field)
 
     if mode == "suggest":
         global suggestions
-        logging.debug(f"\nSuggestions: {suggestions}")
+        logger.debug(f"\nSuggestions: {suggestions}")
         if len(suggestions) == 0:
             set_suggestions()
         if len(suggestions) > 0:
@@ -205,7 +208,7 @@ def traverse_dialog_tree(current_node):
         label = classifier(user_utt)
 
     for i, condition in enumerate(conditions):
-        logging.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
+        logger.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
         if eval(condition):
             next_node = exits[i]
             break
@@ -229,7 +232,6 @@ Please select a classification method (first two are baseline systems):
     classifier = list_models["2"]
     if classifier_key in list_models.keys():
         classifier = list_models[classifier_key]
-        print(f"Model number {classifier_key} was selected!")
     else:
         print("Using default model (keyword matching)")
 
