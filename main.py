@@ -29,11 +29,11 @@ logging.basicConfig(
     filemode="w",
 )
 console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-if "debug" in sys.argv:
-    console.setLevel(logging.DEBUG)
-    print("DEBUG mode enabled")
-logging.getLogger("").addHandler(console)
+console.setLevel(logging.DEBUG)
+if "debug" not in sys.argv:
+    console.setLevel(logging.INFO)
+    logging.info("Running on production mode.")
+logging.getLogger().addHandler(console)
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
@@ -245,3 +245,5 @@ keyword_dict = {
     "reqmore": r"\bmore\b",
     "null": r"__?__",
 }
+
+main()
