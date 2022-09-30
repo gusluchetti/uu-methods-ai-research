@@ -21,27 +21,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 import logging
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-console = logging.StreamHandler(stream=sys.stdout)
-file_handler = logging.FileHandler(filename="tmp.log")
-formatter = logging.Formatter(
-    "(%(process)d) %(asctime)s %(name)s (line %(lineno)s) | %(levelname)s %(message)s"
-)
-
+logger = logging.getLogger("main")
 # if on debug mode, print everything that would be logged
 if "debug" in sys.argv:
-    console.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
     print("Running on debug mode (debug arg)")
 else:
-    console.setLevel(logging.INFO)
+    logger.setLevel(logging.INFO)
     print("Running normally")
-
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
-console.setFormatter(formatter)
-logger.addHandler(console)
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
