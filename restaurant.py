@@ -39,61 +39,59 @@ restaurants.loc[
 # In[65]:
 
 
-def find_all_restaurants(df, preferences):
-    if len(preferences) == 3:
-        if preferences[0] == "any":
-            result = df.loc[
-                (df["area"] == preferences[1]) & (df["food"] == preferences[2])
-            ]
+def find_all_restaurants(df, form):
+    if len(form) == 3:
+        if form[0] == "any":
+            result = df.loc[(df["area"] == form[1]) & (df["food"] == preferences[2])]
         else:
             result = df.loc[
-                (df["pricerange"] == preferences[0])
-                & (df["area"] == preferences[1])
-                & (df["food"] == preferences[2])
+                (df["pricerange"] == form[0])
+                & (df["area"] == form[1])
+                & (df["food"] == form[2])
             ]
 
         result.reset_index(drop=True, inplace=True)
         globals()["recommendations"] = result
         return result
 
-    elif len(preferences) == 4:
-        globals()["extra_requirement"] = preferences[3]
-        if preferences[0] == "any":
+    elif len(form) == 4:
+        globals()["extra_requirement"] = form[3]
+        if form[0] == "any":
             pricerange = r"cheap|moderate|expensive"
         else:
-            pricerange = preferences[0]
+            pricerange = form[0]
             # df['pricerange'].str.match(pricerange)
             # (lambda x: x['pricerange'].str.contains(pricerange, regex = True))
-        if preferences[3] == "romantic":
+        if form[3] == "romantic":
             result = df.loc[
                 df["pricerange"].str.match(pricerange)
-                & (df["area"] == preferences[1])
-                & (df["food"] == preferences[2])
+                & (df["area"] == form[1])
+                & (df["food"] == form[2])
                 & (df["length_of_stay"] == "long")
                 & (df["crowdedness"] == "not busy")
             ]
 
-        if preferences[3] == "children":
+        if form[3] == "children":
             result = df.loc[
                 df["pricerange"].str.match(pricerange)
-                & (df["area"] == preferences[1])
-                & (df["food"] == preferences[2])
+                & (df["area"] == form[1])
+                & (df["food"] == form[2])
                 & (df["length_of_stay"] == "short")
             ]
 
-        if preferences[3] == "assigned seats":
+        if form[3] == "assigned seats":
             result = df.loc[
                 df["pricerange"].str.match(pricerange)
-                & (df["area"] == preferences[1])
-                & (df["food"] == preferences[2])
+                & (df["area"] == form[1])
+                & (df["food"] == form[2])
                 & (df["crowdedness"] == "busy")
             ]
 
-        if preferences[3] == "touristic":
+        if form[3] == "touristic":
             result = df.loc[
                 df["pricerange"].str.match(pricerange)
-                & (df["area"] == preferences[1])
-                & (df["food"] == preferences[2])
+                & (df["area"] == form[1])
+                & (df["food"] == form[2])
                 & (df["crowdedness"] == "busy")
                 & (df["food"] != "romanian")
                 & df["food_quality"]
