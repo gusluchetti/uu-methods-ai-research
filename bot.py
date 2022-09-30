@@ -1,10 +1,9 @@
-import pandas as pd
 import type_match_ls
 import restaurant
 
 import logging
 
-logger = logging.getLogger("main")
+logger = logging.getLogger()
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -88,7 +87,7 @@ for value in dialog_tree.values():
 # starting states
 current_node = "welcome"
 form = {"area": "", "food": "", "pricerange": "", "extra_preference": ""}
-suggestions = pd.DataFrame([])
+suggestions = []
 
 
 def extract_food(utt):
@@ -154,6 +153,7 @@ def set_suggestions():
             form["extra_preference"],
         ],
     )
+    logger.debug(f"\n {len(suggestions)} suggestions possible -> {suggestions}")
 
 
 def set_current_node(new_node):
@@ -169,11 +169,11 @@ def traverse_dialog_tree(current_node):
 
     global form
     """Traversing utterance to update form states"""
-    logger.debug(f"Current mode -> {mode}")
-    logger.debug(f"Conditions -> {conditions}")
+    logger.debug(
+        f"\nCurrent Node: {current_node}\nMode: {mode}\nExits: {exits}\nConditions: {conditions}\nForm: {form}"
+    )
 
     mode_split = mode.split("_", 1)
-    logger.debug(f"mode split {mode_split}")
     if mode_split[0] in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classifier(user_utt)
@@ -185,22 +185,22 @@ def traverse_dialog_tree(current_node):
             set_form("area", extract_area(user_utt))
             set_form("pricerange", extract_pricerange(user_utt))
             set_form("extra_preference", extract_extra_preference(user_utt))
-            logger.debug(f"Forms -> {form}")
         elif "extract" in mode:
             field = eval("extract_{}(user_utt)".format(mode_split[1]))
             set_form(mode_split[1], field)
 
     if mode == "suggest":
         global suggestions
-        logger.debug(f"\nSuggestions: {suggestions}")
-        if len(suggestions) == 0:
+        if len(suggestions) <= 0:
             set_suggestions()
-        if len(suggestions) > 0:
+        else:
             suggestion = suggestions.pop(0)
             user_utt = input(sys_utt.format(suggestion)).lower()
             label = classifier(user_utt)
-        else:
+
+        if len(suggestions) == 0:  # if nothing was found...
             print("Sorry. I couldn't find appropriate restaurant.")
+
     elif mode == "confirm":
         user_utt = input(
             sys_utt.format(get_form("pricerange"), get_form("food"), get_form("area"))
@@ -219,7 +219,7 @@ def traverse_dialog_tree(current_node):
 # passing functions that return predictions for the bot to use
 def start(list_models):
     global classifier
-    print("Hello! I'm a restaurant recommendation bot! \n")
+    print("\nHello! I'm a restaurant recommendation bot!")
     classifier_key = input(
         """
 Please select a classification method (first two are baseline systems):
