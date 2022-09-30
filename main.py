@@ -21,10 +21,10 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-if "debug" in sys.argv:
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-else:
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+# if "debug" in sys.argv:
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# else:
+#     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 log = logging.getLogger(__name__)
 # main should be responsible for setting up the dataset, doing preprocessing

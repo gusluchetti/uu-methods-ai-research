@@ -3,9 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 import random
+import logging
+log = logging.getLogger(__name__)
 
-globals()["extra_requirement"] = ""
-restaurants = pd.read_csv(r"C:\Users\niels\restaurant_info(1).csv")
+extra_preference = ""
+recommendations = pd.DataFrame([])
+restaurants = pd.read_csv(r"restaurant_info.csv")
+
 food_quality = ["bad food", "okay food", "good food"]
 crowdedness = ["not busy", "busy"]
 length_of_stay = ["short", "normal", "long"]
@@ -15,156 +19,104 @@ random_crowdedness = []
 random_length_of_stay = []
 for i in range(0, len(restaurants)):
     random_food_quality.append(random.choice(food_quality))
-for i in range(0, len(restaurants)):
     random_crowdedness.append(random.choice(crowdedness))
-for i in range(0, len(restaurants)):
     random_length_of_stay.append(random.choice(length_of_stay))
 
 restaurants.insert(1, "food_quality", random_food_quality, True)
 restaurants.insert(1, "crowdedness", random_crowdedness, True)
 restaurants.insert(1, "length_of_stay", random_length_of_stay, True)
-restaurants.head()
 
 
-# In[60]:
+def set_recommendations(form):
+    global restaurants, recommendations
+    inference_rules = {
+        "touristic": "pricerange in ('cheap') & food_quality in ('good') & food not in ('romanian')",
+        "assigned seats": "crowdedness in ('busy')",
+        "children": "length_of_stay in ('long')",
+        "romantic": "crowdedness not in ('busy') & length_of_stay in ('long')",
+    }
+    #log.debug(f"All restaurants:\n{restaurants}")
+    log.debug(f"Current preferences: {form}")
 
-
-restaurants.loc[
-    restaurants["length_of_stay"].str.match("(long|short)") & restaurants["area"]
-    == "cventer"
-]
-# restaurants.loc[(restaurants['length_of_stay']== 'long' & restaurants["area"] == 'centre')]
-
-
-# In[65]:
-
-
-def find_all_restaurants(df, form):
-    if len(form) == 3:
-        if form[0] == "any":
-            result = df.loc[(df["area"] == form[1]) & (df["food"] == preferences[2])]
+    filter = tuple()
+    for key in form.keys():
+        log.debug(f"k=({key}) - v=({form[key]})")
+        if form[key] == "" or form[key] == "any":
+            continue
+        if key == "extra_preference":
+            temp = inference_rules[form[key]] 
         else:
-            result = df.loc[
-                (df["pricerange"] == form[0])
-                & (df["area"] == form[1])
-                & (df["food"] == form[2])
-            ]
+            temp = f"{key} in ('{form[key]}')"
+        log.debug(f"filter string: {filter}")
+        filter += (temp,)
 
-        result.reset_index(drop=True, inplace=True)
-        globals()["recommendations"] = result
-        return result
+    query = " & ".join(filter)
+    log.debug(f"query: {query}")
 
-    elif len(form) == 4:
-        globals()["extra_requirement"] = form[3]
-        if form[0] == "any":
-            pricerange = r"cheap|moderate|expensive"
-        else:
-            pricerange = form[0]
-            # df['pricerange'].str.match(pricerange)
-            # (lambda x: x['pricerange'].str.contains(pricerange, regex = True))
-        if form[3] == "romantic":
-            result = df.loc[
-                df["pricerange"].str.match(pricerange)
-                & (df["area"] == form[1])
-                & (df["food"] == form[2])
-                & (df["length_of_stay"] == "long")
-                & (df["crowdedness"] == "not busy")
-            ]
+    result = restaurants.query(query)
+    #result.reset_index(drop=True, inplace=True)
+    log.debug(f"Results:\n {result}")
+    recommendations = result
 
-        if form[3] == "children":
-            result = df.loc[
-                df["pricerange"].str.match(pricerange)
-                & (df["area"] == form[1])
-                & (df["food"] == form[2])
-                & (df["length_of_stay"] == "short")
-            ]
+    
+def get_recommendations():
+    global recommendations
+    return recommendations
 
-        if form[3] == "assigned seats":
-            result = df.loc[
-                df["pricerange"].str.match(pricerange)
-                & (df["area"] == form[1])
-                & (df["food"] == form[2])
-                & (df["crowdedness"] == "busy")
-            ]
+def drop_recommendation(index):
+    global recommendation
+    recommendations.drop(index, axis=0, inplace=True)
+    
 
-        if form[3] == "touristic":
-            result = df.loc[
-                df["pricerange"].str.match(pricerange)
-                & (df["area"] == form[1])
-                & (df["food"] == form[2])
-                & (df["crowdedness"] == "busy")
-                & (df["food"] != "romanian")
-                & df["food_quality"]
-                == "good food"
-            ]
-
-    if len(result) > 0:
-        result.reset_index(drop=True, inplace=True)
-        globals()["recommendations"] = result
-        return result
-
+def get_recommendations_message():
+    if len(recommendations) > 0:
+        index = np.random.choice(recommendations.index.tolist())
+        #recommendations.drop(index, axis=0, inplace=True)
+        #recommendations.reset_index(drop=True, inplace=True)
+        return recommendation_message(index)
+    else:
+        return recommendation_message(-1)
+        
 
 def get_extra_requirement():
-    if (globals()["extra_requirement"]) == "romantic":
-        return (
-            " The restaurant is romantic because it allows you to stay for a long time."
-        )
-    elif globals()["extra_requirement"] == "children":
-        return " The restaurant is suitable for children, because the stay is short."
-    elif globals()["extra_requirement"] == "assigned seats":
-        return " There are assigned seats in this restaurant, because it is busy."
-    elif globals()["extra_requirement"] == "touristic":
-        return (
-            " This restaurant is touristic, because it is cheap and serves good food."
-        )
+    if extra_preference == "romantic":
+        return "The restaurant is romantic because it allows you to stay for a long time."
+    elif extra_preference == "children":
+        return "The restaurant is suitable for children, because the stay is short."
+    elif extra_preference == "assigned seats":
+        return "There are assigned seats in this restaurant, because it is busy."
+    elif extra_preference == "touristic":
+        return "This restaurant is touristic, because it is cheap and serves good food."
+    else:
+        return ""
 
 
-# In[26]:
+def recommendation_message(index):
+    if index >= 0:
+        phone = restaurants.iloc[index]["phone"]
+        postcode = restaurants.iloc[index]["postcode"]
+        rest = restaurants.iloc[index]
+
+        string_no_phone_and_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}."
+        string_no_phone = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']})."
+        string_no_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}. The phonenumber of the restaurant is: {rest['phone']}."
+        string_all = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']}). The phonenumber of the restaurant is: {rest['phone']}."
+        response = ""
+        if extra_preference == "":
+            if (pd.isna(phone)) and (pd.isna(postcode)):
+                response = string_no_phone_and_postcode
+            elif pd.isna(phone):
+                response = string_no_phone
+            elif pd.isna(postcode):
+                response = string_no_postcode
+            else:
+                response = string_all
+        elif extra_preference != "":
+            response + get_extra_requirement()
+        
+        return (index, response + "\nIs that ok?")
+
+    return (index, "Sorry, there are no restaurants that conforms to your requirements.")
 
 
-def toString_recommended_restaurant(index):
-    phone = globals()["recommendations"].iloc[index]["phone"]
-    postcode = globals()["recommendations"].iloc[index]["postcode"]
-    rest = globals()["recommendations"].iloc[index]
 
-    string_no_phone_and_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}."
-    string_no_phone = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']})."
-    string_no_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}. The phonenumber of the restaurant is: {rest['phone']}."
-    string_all = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']}). The phonenumber of the restaurant is: {rest['phone']}."
-
-    if (len(globals()["recommendations"]) > 0) and (
-        globals()["extra_requirement"] == ""
-    ):
-        if (pd.isna(phone)) and (pd.isna(postcode)):
-            return string_no_phone_and_postcode
-        elif pd.isna(phone):
-            return string_no_phone
-        elif pd.isna(postcode):
-            return string_no_postcode
-        else:
-            return string_all
-    elif globals()["extra_requirement"] != "":
-        get_extra_requirement()
-        if (pd.isna(phone)) and (pd.isna(postcode)):
-            return string_no_phone_and_postcode + get_extra_requirement()
-        elif pd.isna(phone):
-            return string_no_phone + get_extra_requirement()
-        elif pd.isna(postcode):
-            return string_no_postcode + get_extra_requirement()
-        else:
-            return string_all + get_extra_requirement()
-
-    return "Sorry, there are no restaurants that conforms to your requirements."
-
-
-# In[27]:
-
-
-if len(globals()["recommendations"]) >= 1:
-    index = np.random.choice(len(globals()["recommendations"].index))
-    print(toString_recommended_restaurant(index))
-    globals()["recommendations"].drop(index, axis=0, inplace=True)
-    globals()["recommendations"].reset_index(drop=True, inplace=True)
-
-
-# In[ ]:

@@ -6,6 +6,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
     "welcome": {
@@ -53,8 +54,8 @@ dialog_tree = {
     "ask_extra_preference": {
         "mode": "extract_extra_preference",
         "sys_utt": "Do you have any extra preference?\n",
-        "exits": ["ask_extra_preference", "confirm_choice"],
-        "exit_conditions": ['not get_form("extra_preference")', "True"],
+        "exits": ["confirm_choice", "ask_extra_preference"],
+        "exit_conditions": ["label in ['negate','deny'] or get_form('extra_preference')", "True"],
     },
     "confirm_choice": {
         "mode": "confirm",
@@ -64,20 +65,17 @@ dialog_tree = {
     },
     "suggest_restaurant": {
         "mode": "suggest",
-        "sys_utt": "Would you like to eat there: {}\n",
-        "exits": ["suggest_restaurant", "welcome", "goodbye"],
+        "sys_utt": "",
+        "exits": ["suggest_restaurant", "goodbye", "goodbye"],
         "exit_conditions": [
-            "label in ['negate','deny'] and len(recommendations)>0",
-            "len(recommendations)==0",
+            "label in ['negate','deny']",
+            "restaurant.get_recommendations().empty",
             "True",
         ],
-    },
+    }
 }
 
-# if restart_flag = True:
-#     for value in dialog_tree.values():
-#       value['exits'].insert(0, 'welcome')
-#       value['exit_conditions'].insert(0, '"restart" in user_utt')
+
 
 # add capability to exit at each point in conversation
 for value in dialog_tree.values():
@@ -88,7 +86,6 @@ for value in dialog_tree.values():
 # starting states
 current_node = "welcome"
 form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
-recommendations = []
 
 
 def extract_food(utt):
@@ -121,14 +118,6 @@ def set_form(field, input):
 def reset_form():
     global form
     form = {field: "" for field in form}
-
-
-def set_recommendations():
-    global recommendations
-    recommendations = restaurant.find_all_restaurants(restaurant.restaurants, form)
-    log.debug(
-        f"\n {len(recommendations)} recommendations possible -> {recommendations}"
-    )
 
 
 def set_current_node(new_node):
@@ -165,22 +154,24 @@ def traverse_dialog_tree(current_node):
             set_form(mode_split[1], field)
 
     if mode == "suggest":
-        global recommendations
-        if len(recommendations) <= 0:
-            set_recommendations()
+        index, suggestion = restaurant.get_recommendations_message()
+        log.debug(f"suggestions {suggestion}")
+        if restaurant.get_recommendations().empty:
+            print(suggestion)
+            label = "null"
         else:
-            suggestion = recommendations.pop(0)
-            user_utt = input(sys_utt.format(suggestion)).lower()
+            user_utt = input(suggestion).lower()
             label = classifier(user_utt)
-
-        if len(recommendations) == 0:  # if nothing was found...
-            print("Sorry. I couldn't find appropriate restaurant.")
+            log.debug(f"classified utterance as {label}")
+            restaurant.drop_recommendation(index)
 
     elif mode == "confirm":
         user_utt = input(
             sys_utt.format(get_form("pricerange"), get_form("food"), get_form("area"))
         ).lower()
         label = classifier(user_utt)
+        log.debug(f"classified utterance as {label}")
+        restaurant.set_recommendations(form)
 
     for i, condition in enumerate(conditions):
         log.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
@@ -203,7 +194,13 @@ Please select a classification method (first two are baseline systems):
 [3] - Logistic Regression
 [4] - Multinomial Naive-Bayes\n"""
     )
-
+    flag = input("Do you want to be able to restart conversation? [y/n]\n")
+    if flag == "y":
+        for value in dialog_tree.values():
+            if value["mode"] != "test":
+                value['exits'].insert(0, 'welcome')
+                value['exit_conditions'].insert(0, '"restart" in user_utt')
+        
     classifier = list_models["2"]
     if classifier_key in list_models.keys():
         classifier = list_models[classifier_key]

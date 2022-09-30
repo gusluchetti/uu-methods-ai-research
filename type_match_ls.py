@@ -50,7 +50,7 @@ def extract_preference(user_utt):
     args :
       user_utt - user utterance, example "I'm looking for a moderately priced restaurant in the west part of town"
     return :
-      dictionary of fields corresponding to global preference_form filled with a (keyword | "unknown" | "any")
+      dictionary of fields corresponding to global preference_form filled with a (keyword | "any" | "")
     """
     food_types = [
         "african",
@@ -123,10 +123,10 @@ def extract_preference(user_utt):
         "assigned seats" if item == "assignedseats" else item for item in sentence
     ]
 
-    type_of_food = "unknown"
-    location = "unknown"
-    pricerange = "unknown"
-    extra_preference = "unknown"
+    type_of_food = ""
+    location = ""
+    pricerange = ""
+    extra_preference = ""
 
     "Find the index of the word on pricerange."
     pricerange_index = -1
