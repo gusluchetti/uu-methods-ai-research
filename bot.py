@@ -4,7 +4,7 @@ import restaurant
 
 import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger("main")
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -172,9 +172,9 @@ def traverse_dialog_tree(current_node):
     logger.debug(f"Current mode -> {mode}")
     logger.debug(f"Conditions -> {conditions}")
 
-    mode_split = mode.split("_", 1)[0]
-    logger.debug(f"mode split? {mode_split}")
-    if mode_split in ["ask", "extract", "welcome"]:
+    mode_split = mode.split("_", 1)
+    logger.debug(f"mode split {mode_split}")
+    if mode_split[0] in ["ask", "extract", "welcome"]:
         user_utt = input(sys_utt).lower()
         label = classifier(user_utt)
         logger.debug(f"classified utterance as {label}")
@@ -187,8 +187,8 @@ def traverse_dialog_tree(current_node):
             set_form("extra_preference", extract_extra_preference(user_utt))
             logger.debug(f"Forms -> {form}")
         elif "extract" in mode:
-            field = eval("extract_{}(user_utt)".format(mode.split("_", 1)[1]))
-            set_form(mode.split("_", 1)[1], field)
+            field = eval("extract_{}(user_utt)".format(mode_split[1]))
+            set_form(mode_split[1], field)
 
     if mode == "suggest":
         global suggestions
