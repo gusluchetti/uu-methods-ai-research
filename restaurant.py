@@ -12,9 +12,7 @@ random_crowdedness = []
 random_length_of_stay = []
 for i in range(0, len(restaurants)):
     random_food_quality.append(random.choice(food_quality))
-for i in range(0, len(restaurants)):
     random_crowdedness.append(random.choice(crowdedness))
-for i in range(0, len(restaurants)):
     random_length_of_stay.append(random.choice(length_of_stay))
 
 restaurants.insert(1, "food_quality", random_food_quality, True)
