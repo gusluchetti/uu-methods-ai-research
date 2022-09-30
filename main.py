@@ -21,19 +21,23 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 import logging
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
-    datefmt="%m-%d %H:%M",
-    filename="main.log",
-    filemode="w",
-)
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+# create formatter
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# add formatter to ch, and add it to logger
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 if "debug" not in sys.argv:
-    console.setLevel(logging.INFO)
-    logging.info("Running on production mode.")
-logging.getLogger().addHandler(console)
+    ch.setLevel(logging.INFO)
+    logging.info("Running on production mode")
+else:
+    logging.debug("Running on DEBUG mode")
+logger.addHandler(ch)
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
@@ -246,4 +250,5 @@ keyword_dict = {
     "null": r"__?__",
 }
 
-main()
+if __name__ == "__main__":
+    main()
