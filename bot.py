@@ -87,7 +87,7 @@ for value in dialog_tree.values():
 
 # starting states
 current_node = "welcome"
-form = {"area": "", "food": "", "pricerange": "", "extra_preference": ""}
+form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
 suggestions = []
 
 
@@ -145,15 +145,7 @@ def reset_form():
 
 def set_suggestions():
     global suggestions
-    suggestions = restaurant.find_all_restaurants(
-        restaurant.restaurants,
-        [
-            form["pricerange"],
-            form["area"],
-            form["food"],
-            form["extra_preference"],
-        ],
-    )
+    suggestions = restaurant.find_all_restaurants(restaurant.restaurants, form)
     log.debug(f"\n {len(suggestions)} suggestions possible -> {suggestions}")
 
 
