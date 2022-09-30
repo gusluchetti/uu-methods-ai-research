@@ -52,26 +52,30 @@ def extract_preference(user_utt):
     return :
       dictionary of fields corresponding to global preference_form filled with a (keyword | "unknown" | "any")
     """
-    # 'WE ADDED SWEDISH AND WORLD IN THE TYPES OF FOOD
-    # SINCE THEY WERE IN THE EXAMPLES FOR THE TASK, EVEN THOUGH THEY ARE NOT IN OUR DATABASE'
     food_types = ["african", "any", "asian oriental", "australasian", "bistro", "british", "catalan", "chinese", "cuban",
                           "european", "french", "fusion","gastropub", "indian","international", "italian", "jamaican","japanese",
                           "korean","lebanese","mediterranean","modern european","moroccan", "north american", "persian","polynesian","portuguese","romanian",
-                          "seafood", "spanish","steakhouse","swiss","thai","traditional","turkish","tuscan","vietnamese","world","swedish"]  
+                          "seafood", "spanish","steakhouse","swiss","thai","traditional","turkish","tuscan","vietnamese"]  
+    extra_pref_list = ["touristic", "children", "assigned seats", "romantic", "sits assigned"]
     sentence_string = user_utt
     # preprocessing
     sentence_string = sentence_string.lower()
     sentence_string = sentence_string.replace("north american", "northamerican")
     sentence_string = sentence_string.replace("modern european", "moderneuropean")
     sentence_string = sentence_string.replace("asian oriental", "asianoriental")
+    sentence_string = sentence_string.replace("assigned seats", "assignedseats")
+    sentence_string = sentence_string.replace("seats assigned", "seatsassigned")
     sentence = list(sentence_string.split(" "))
     sentence = ["north american" if item == "northamerican" else item for item in sentence]
     sentence = ["modern european" if item == "moderneuropean" else item for item in sentence]
     sentence = ["asian oriental" if item == "asianoriental" else item for item in sentence]
+    sentence = ["seats assigned" if item == "seatsassigned" else item for item in sentence]
+    sentence = ["assigned seats" if item == "assignedseats" else item for item in sentence]
 
     type_of_food = "unknown"
     location = "unknown"
     pricerange = "unknown"
+    extra_preference = "unknown"
 
     'Find the index of the word on pricerange.'
     pricerange_index = -1
@@ -155,10 +159,17 @@ def extract_preference(user_utt):
         if bestMatchList(location_candidates, ["any", "north", "south", "west", "east", "centre"]):
             location, misspelled_location = bestMatchList(location_candidates, ["any","north", "south", "west", "east", "centre"])
             location_index = sentence.index(misspelled_location)
-    
+            
+    'Find extra preferences, if the user has any'
+    if bestMatchList(sentence, extra_pref_list):
+        extra_preference, misspelled_extra_pref = bestMatchList(sentence, extra_pref_list)
+        if sentence.index(misspelled_extra_pref) == location_index or sentence.index(misspelled_extra_pref) == pricerange_index or sentence.index(misspelled_extra_pref) == type_index:
+            extra_preference = "unknown"
+            
     return {'area': location,
             'pricerange': pricerange,
-            'food': type_of_food
+            'food': type_of_food,
+            'extra_preference': extra_preference
             }
 
 def extract_food(user_utt):
