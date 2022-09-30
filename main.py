@@ -13,22 +13,14 @@ import numpy as np
 import pickle
 
 import bot
+import logger
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-import logging
-
-logger = logging.getLogger()
-# if on debug mode, print everything that would be logged
-if "debug" in sys.argv:
-    logger.setLevel(logging.DEBUG)
-    print("Running on debug mode (debug arg)")
-else:
-    logger.setLevel(logging.INFO)
-    print("Running normally")
+logger = logger.setup_logger(sys.argv)
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
