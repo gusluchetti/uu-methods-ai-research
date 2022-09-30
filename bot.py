@@ -2,6 +2,7 @@ import logging
 import pandas as pd
 
 import type_match_ls
+import restaurant
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -119,8 +120,8 @@ def reasoning_filter(extra_preference, restaurant_df):
         "romantic": '(df["crowdedness"] != "busy") & (df["length_of_stay"] == "long")',
     }
 
-    # super_rule = " and ".join([inference_rules[x] for x in extra_preferences])
-    # return restaurant_df.loc[eval(super_rule)]
+    #  super_rule = " and ".join([inference_rules[x] for x in extra_preferences])
+    #  return restaurant_df.loc[eval(super_rule)]
     return restaurant_df.loc[eval(inference_rules[extra_preference])]
 
 
@@ -142,15 +143,15 @@ def reset_form():
 
 def set_suggestions():
     global suggestions
-    #     suggestions = restaurant.find_all_restaurants(
-    #         restaurant.restaurants,
-    #         [suggestions['pricerange'], suggestions['area'],suggestions['food'],suggestions['extra_preference']]
-    #     )
-    suggestions = [
-        "ChopChop, NY, 5$",
-        "TratoriaVerona, Napoli, 40$",
-        "Tzaziki, Athens, 1$",
-    ]
+    suggestions = restaurant.find_all_restaurants(
+        restaurant.restaurants,
+        [
+            suggestions["pricerange"],
+            suggestions["area"],
+            suggestions["food"],
+            suggestions["extra_preference"],
+        ],
+    )
 
 
 def set_current_node(new_node):
@@ -166,7 +167,6 @@ def traverse_dialog_tree(current_node):
 
     global form
     """Traversing utterance to update form states"""
-    logging.debug(f"\nStart: Utterance: {sys_utt}")
     logging.debug(f"Current mode -> {mode}")
     logging.debug(f"Conditions -> {conditions}")
 
