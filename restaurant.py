@@ -1,8 +1,11 @@
 import pandas as pd
-import numpy as np
+
+# import numpy as np
 import random
 
-import base_logger
+import logging
+
+log = logging.getLogger(__name__)
 
 
 restaurants = pd.read_csv(r"restaurant_info.csv")
@@ -26,11 +29,8 @@ restaurants.head()
 
 
 def find_all_restaurants(df, preferences):
-    global logger
-    logger = base_logger.get_logger()
-
-    logger.debug(f"All restaurants:\n{df}")
-    logger.debug(f"Current preferences: {preferences}")
+    log.debug(f"All restaurants:\n{df}")
+    log.debug(f"Current preferences: {preferences}")
 
     if len(preferences) == 3:
         result = df.loc[

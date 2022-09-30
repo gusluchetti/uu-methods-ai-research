@@ -15,16 +15,18 @@ import pickle
 
 # local imports
 import bot
-import base_logger
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-base_logger.set_logger(logging.getLogger("main"), sys.argv)
-logger = base_logger.get_logger()
+if "debug" in sys.argv:
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+else:
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
+log = logging.getLogger(__name__)
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
 # those models are then passed onto the bot that is called at the very end
@@ -80,7 +82,7 @@ def preprocess(df):
 def set_majority_class(df):
     global majority_class
     """Returns majority label for a given dataframe with a label column"""
-    logger.debug(f"Majority class is {majority_class}")
+    log.debug(f"Majority class is {majority_class}")
     majority_class = df["label"].mode().to_string()
     return majority_class
 
@@ -146,7 +148,7 @@ def tfidf_convert(utterance):
 
 def return_pred(label_id):
     pred = label_dict["label"].iloc[label_id.item(0)]
-    logger.debug(f"Label ID: {label_id} \nActual Prediction: {pred}")
+    log.debug(f"Label ID: {label_id} \nActual Prediction: {pred}")
     return pred
 
 
@@ -190,10 +192,8 @@ def main():
 
     if "remodel" not in sys.argv:
         if os.path.exists(models_path + "lr.sav"):
-            print("Reusing Logistic Regression model...")
             logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
         if os.path.exists(models_path + "mnb.sav"):
-            print("Reusing Multinomial NB model...")
             multinomial_nb = pickle.load(open(models_path + "mnb.sav", "rb"))
     else:
         print("Building models from scratch! This might take a while.")
