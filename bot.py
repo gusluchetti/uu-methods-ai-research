@@ -1,8 +1,7 @@
-import logging
 import pandas as pd
-
 import type_match_ls
 import restaurant
+import logging
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -146,10 +145,10 @@ def set_suggestions():
     suggestions = restaurant.find_all_restaurants(
         restaurant.restaurants,
         [
-            suggestions["pricerange"],
-            suggestions["area"],
-            suggestions["food"],
-            suggestions["extra_preference"],
+            form["pricerange"],
+            form["area"],
+            form["food"],
+            form["extra_preference"],
         ],
     )
 
@@ -190,6 +189,7 @@ def traverse_dialog_tree(current_node):
 
     if mode == "suggest":
         global suggestions
+        logging.debug(f"\nSuggestions: {suggestions}")
         if len(suggestions) == 0:
             set_suggestions()
         if len(suggestions) > 0:
@@ -205,10 +205,7 @@ def traverse_dialog_tree(current_node):
         label = classifier(user_utt)
 
     for i, condition in enumerate(conditions):
-        print(condition)
-        logging.debug(f"condition {i}: {condition}")
-        logging.debug(f"eval: {eval(condition)}")
-
+        logging.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
         if eval(condition):
             next_node = exits[i]
             break
@@ -217,7 +214,7 @@ def traverse_dialog_tree(current_node):
 
 
 # passing functions that return predictions for the bot to use
-def bot(list_models):
+def start(list_models):
     global classifier
     print("Hello! I'm a restaurant recommendation bot! \n")
     classifier_key = input(
