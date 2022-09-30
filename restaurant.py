@@ -53,7 +53,7 @@ def find_all_restaurants(df, preferences):
             ]
 
         result.reset_index(drop=True, inplace=True)
-        globals()["remaining_restaurants"] = result
+        globals()["recommendations"] = result
         return result
 
     elif len(preferences) == 4:
@@ -102,7 +102,7 @@ def find_all_restaurants(df, preferences):
 
     if len(result) > 0:
         result.reset_index(drop=True, inplace=True)
-        globals()["remaining_restaurants"] = result
+        globals()["recommendations"] = result
         return result
 
 
@@ -125,16 +125,16 @@ def get_extra_requirement():
 
 
 def toString_recommended_restaurant(index):
-    phone = globals()["remaining_restaurants"].iloc[index]["phone"]
-    postcode = globals()["remaining_restaurants"].iloc[index]["postcode"]
-    rest = globals()["remaining_restaurants"].iloc[index]
+    phone = globals()["recommendations"].iloc[index]["phone"]
+    postcode = globals()["recommendations"].iloc[index]["postcode"]
+    rest = globals()["recommendations"].iloc[index]
 
     string_no_phone_and_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}."
     string_no_phone = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']})."
     string_no_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}. The phonenumber of the restaurant is: {rest['phone']}."
     string_all = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']}). The phonenumber of the restaurant is: {rest['phone']}."
 
-    if (len(globals()["remaining_restaurants"]) > 0) and (
+    if (len(globals()["recommendations"]) > 0) and (
         globals()["extra_requirement"] == ""
     ):
         if (pd.isna(phone)) and (pd.isna(postcode)):
@@ -162,11 +162,11 @@ def toString_recommended_restaurant(index):
 # In[27]:
 
 
-if len(globals()["remaining_restaurants"]) >= 1:
-    index = np.random.choice(len(globals()["remaining_restaurants"].index))
+if len(globals()["recommendations"]) >= 1:
+    index = np.random.choice(len(globals()["recommendations"].index))
     print(toString_recommended_restaurant(index))
-    globals()["remaining_restaurants"].drop(index, axis=0, inplace=True)
-    globals()["remaining_restaurants"].reset_index(drop=True, inplace=True)
+    globals()["recommendations"].drop(index, axis=0, inplace=True)
+    globals()["recommendations"].reset_index(drop=True, inplace=True)
 
 
 # In[ ]:

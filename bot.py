@@ -67,8 +67,8 @@ dialog_tree = {
         "sys_utt": "Would you like to eat there: {}\n",
         "exits": ["suggest_restaurant", "welcome", "goodbye"],
         "exit_conditions": [
-            "label in ['negate','deny'] and len(suggestions)>0",
-            "len(suggestions)==0",
+            "label in ['negate','deny'] and len(recommendations)>0",
+            "len(recommendations)==0",
             "True",
         ],
     },
@@ -88,7 +88,7 @@ for value in dialog_tree.values():
 # starting states
 current_node = "welcome"
 form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
-suggestions = []
+recommendations = []
 
 
 def extract_food(utt):
@@ -107,26 +107,6 @@ def extract_extra_preference(utt):
     return type_match_ls.extract_extra_preference(utt)
 
 
-def reasoning_filter(extra_preference, restaurant_df):
-    """
-    args:
-      extra_preference - extra preference string
-      restaurant_df - dataframe with restaurants and their qualities
-    returns:
-      dataframe with restaurants that satisfy inference rules for all given extra_preferences
-    """
-    inference_rules = {
-        "touristic": '(df["pricerange"] == "cheap") & (df["food_quality"] == "good") & (df["food"] != "romanian")',
-        "assigned seats": '(df["crowdedness"] == "busy")',
-        "children": '(df["length_of_stay"] != "long")',
-        "romantic": '(df["crowdedness"] != "busy") & (df["length_of_stay"] == "long")',
-    }
-
-    #  super_rule = " and ".join([inference_rules[x] for x in extra_preferences])
-    #  return restaurant_df.loc[eval(super_rule)]
-    return restaurant_df.loc[eval(inference_rules[extra_preference])]
-
-
 # get, set and reset form state
 def get_form(field):
     global form
@@ -143,10 +123,12 @@ def reset_form():
     form = {field: "" for field in form}
 
 
-def set_suggestions():
-    global suggestions
-    suggestions = restaurant.find_all_restaurants(restaurant.restaurants, form)
-    log.debug(f"\n {len(suggestions)} suggestions possible -> {suggestions}")
+def set_recommendations():
+    global recommendations
+    recommendations = restaurant.find_all_restaurants(restaurant.restaurants, form)
+    log.debug(
+        f"\n {len(recommendations)} recommendations possible -> {recommendations}"
+    )
 
 
 def set_current_node(new_node):
@@ -183,15 +165,15 @@ def traverse_dialog_tree(current_node):
             set_form(mode_split[1], field)
 
     if mode == "suggest":
-        global suggestions
-        if len(suggestions) <= 0:
-            set_suggestions()
+        global recommendations
+        if len(recommendations) <= 0:
+            set_recommendations()
         else:
-            suggestion = suggestions.pop(0)
+            suggestion = recommendations.pop(0)
             user_utt = input(sys_utt.format(suggestion)).lower()
             label = classifier(user_utt)
 
-        if len(suggestions) == 0:  # if nothing was found...
+        if len(recommendations) == 0:  # if nothing was found...
             print("Sorry. I couldn't find appropriate restaurant.")
 
     elif mode == "confirm":
