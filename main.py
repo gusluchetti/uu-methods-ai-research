@@ -249,4 +249,5 @@ keyword_dict = {
     "null": r"__?__",
 }
 
-main()
+if __name__ == "__main__":
+    main()
