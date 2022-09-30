@@ -21,7 +21,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 import logging
 
-logger = logging.getLogger("main")
+logger = logging.getLogger()
 # if on debug mode, print everything that would be logged
 if "debug" in sys.argv:
     logger.setLevel(logging.DEBUG)
