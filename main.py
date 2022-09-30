@@ -12,14 +12,13 @@ import pandas as pd
 import numpy as np
 import pickle
 
-from bot import bot  # local import
+import bot
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# configuring logging
 import logging
 
 logging.basicConfig(
@@ -29,13 +28,11 @@ logging.basicConfig(
     filename="main.log",
     filemode="w",
 )
-# define a Handler which writes INFO messages or higher to the sys.stderr
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 if "debug" in sys.argv:
     console.setLevel(logging.DEBUG)
     print("DEBUG mode enabled")
-# add the handler to the root logger
 logging.getLogger("").addHandler(console)
 
 # main should be responsible for setting up the dataset, doing preprocessing
@@ -225,12 +222,12 @@ def main():
         "3": predict_lr,
         "4": predict_mnb,
     }
-    bot(list_models)
+    bot.start(list_models)
 
 
 global majority_class, keyword_dict
 majority_class = "inform"
-# should we remove null completely?
+# TODO: should we remove null completely?
 keyword_dict = {
     "inform": r"\blooking\b|\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
     "confirm": r"\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
@@ -248,6 +245,3 @@ keyword_dict = {
     "reqmore": r"\bmore\b",
     "null": r"__?__",
 }
-
-if __name__ == "__main__":
-    main()
