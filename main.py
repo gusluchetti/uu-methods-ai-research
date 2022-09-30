@@ -168,9 +168,9 @@ def main():
     """Prepares the dataset, model and runs the bot"""
     global label_dict, tfidf
     global logistic_regression, multinomial_nb
-    models_path = "models/"
-    source_data = "dialog_acts.dat"
-    df_file = "df.csv"
+    data_path = "datasets/"
+    source_data = data_path + "dialog_acts.dat"
+    df_file = data_path + "df.csv"
 
     if os.path.exists(df_file) and "reprocess" not in sys.argv:
         print("Found existing processed dataframe! Using it instead...")
@@ -190,6 +190,7 @@ def main():
     label_dict = build_label_dict(df)
     X_train, X_test, y_train, y_test = make_train_test_split(df)
 
+    models_path = "models/"
     if "remodel" not in sys.argv:
         if os.path.exists(models_path + "lr.sav"):
             logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
