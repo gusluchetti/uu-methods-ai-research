@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import logging
 import random
 
 restaurants = pd.read_csv(r"restaurant_info.csv")
@@ -22,6 +23,9 @@ restaurants.head()
 
 
 def find_all_restaurants(df, preferences):
+    logging.debug(f"All restaurants:\n{df}")
+    logging.debug(f"Current preferences: {preferences}")
+
     if len(preferences) == 3:
         result = df.loc[
             (df["pricerange"] == preferences[0])
