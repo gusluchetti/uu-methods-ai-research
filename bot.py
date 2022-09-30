@@ -1,6 +1,7 @@
 import logging
+import pandas as pd
+
 import type_match_ls
-import restaurant
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -61,10 +62,7 @@ dialog_tree = {
     "suggest_restaurant": {
         "mode": "suggest",
         "sys_utt": "Would you like to eat there: {}\n",
-        "exits": [
-            "suggest_restaurant", 
-            "welcome", 
-            "goodbye"],
+        "exits": ["suggest_restaurant", "welcome", "goodbye"],
         "exit_conditions": [
             "label in ['negate','deny'] and len(suggestions)>0",
             "len(suggestions)==0",
@@ -78,11 +76,11 @@ dialog_tree = {
 #       value['exits'].insert(0, 'welcome')
 #       value['exit_conditions'].insert(0, '"restart" in user_utt')
 
-#add capability to exit at each point in conversation
+# add capability to exit at each point in conversation
 for value in dialog_tree.values():
-    if value['mode'] != 'test':
-        value['exits'].insert(0, 'goodbye')
-        value['exit_conditions'].insert(0, 'label=="bye"')
+    if value["mode"] != "test":
+        value["exits"].insert(0, "goodbye")
+        value["exit_conditions"].insert(0, 'label=="bye"')
 
 # starting states
 current_node = "welcome"
@@ -111,7 +109,7 @@ def reasoning_filter(extra_preference, restaurant_df):
     args:
       extra_preference - extra preference string
       restaurant_df - dataframe with restaurants and their qualities
-    returns: 
+    returns:
       dataframe with restaurants that satisfy inference rules for all given extra_preferences
     """
     inference_rules = {
@@ -121,8 +119,8 @@ def reasoning_filter(extra_preference, restaurant_df):
         "romantic": '(df["crowdedness"] != "busy") & (df["length_of_stay"] == "long")',
     }
 
-    #super_rule = " and ".join([inference_rules[x] for x in extra_preferences])
-    #return restaurant_df.loc[eval(super_rule)]
+    # super_rule = " and ".join([inference_rules[x] for x in extra_preferences])
+    # return restaurant_df.loc[eval(super_rule)]
     return restaurant_df.loc[eval(inference_rules[extra_preference])]
 
 
@@ -144,10 +142,10 @@ def reset_form():
 
 def set_suggestions():
     global suggestions
-#     suggestions = restaurant.find_all_restaurants(
-#         restaurant.restaurants, 
-#         [suggestions['pricerange'], suggestions['area'],suggestions['food'],suggestions['extra_preference']]
-#     )
+    #     suggestions = restaurant.find_all_restaurants(
+    #         restaurant.restaurants,
+    #         [suggestions['pricerange'], suggestions['area'],suggestions['food'],suggestions['extra_preference']]
+    #     )
     suggestions = [
         "ChopChop, NY, 5$",
         "TratoriaVerona, Napoli, 40$",
@@ -161,10 +159,10 @@ def set_current_node(new_node):
 
 
 def traverse_dialog_tree(current_node):
-    mode = dialog_tree[current_node]['mode']
-    sys_utt = dialog_tree[current_node]['sys_utt']
-    exits = dialog_tree[current_node]['exits']
-    conditions = dialog_tree[current_node]['exit_conditions']
+    mode = dialog_tree[current_node]["mode"]
+    sys_utt = dialog_tree[current_node]["sys_utt"]
+    exits = dialog_tree[current_node]["exits"]
+    conditions = dialog_tree[current_node]["exit_conditions"]
 
     global form
     """Traversing utterance to update form states"""
@@ -202,9 +200,7 @@ def traverse_dialog_tree(current_node):
             print("Sorry. I couldn't find appropriate restaurant.")
     elif mode == "confirm":
         user_utt = input(
-            sys_utt.format(
-                get_form("pricerange"), get_form("food"), get_form("area")
-            )
+            sys_utt.format(get_form("pricerange"), get_form("food"), get_form("area"))
         ).lower()
         label = classifier(user_utt)
 
@@ -212,7 +208,6 @@ def traverse_dialog_tree(current_node):
         print(condition)
         logging.debug(f"condition {i}: {condition}")
         logging.debug(f"eval: {eval(condition)}")
-        
 
         if eval(condition):
             next_node = exits[i]
