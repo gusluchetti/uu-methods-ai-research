@@ -8,19 +8,22 @@
 import re
 import os
 import sys
+import logging
 import pandas as pd
 import numpy as np
 import pickle
 
+# local imports
 import bot
-import logger
+import base_logger
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-logger = logger.setup_logger(sys.argv)
+base_logger.set_logger(logging.getLogger("main"), sys.argv)
+logger = base_logger.get_logger()
 
 # main should be responsible for setting up the dataset, doing preprocessing
 # and training the models that will be used
@@ -209,6 +212,7 @@ def main():
         "3": predict_lr,
         "4": predict_mnb,
     }
+
     bot.start(list_models)
 
 
