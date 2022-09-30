@@ -1,8 +1,5 @@
 import pandas as pd
-
-# import numpy as np
 import random
-
 import logging
 
 log = logging.getLogger(__name__)
@@ -25,36 +22,36 @@ for i in range(0, len(restaurants)):
 restaurants.insert(1, "food_quality", random_food_quality, True)
 restaurants.insert(1, "crowdedness", random_crowdedness, True)
 restaurants.insert(1, "length_of_stay", random_length_of_stay, True)
-restaurants.head()
 
 
-def find_all_restaurants(df, preferences):
+def find_all_restaurants(df, prefs):
     log.debug(f"All restaurants:\n{df}")
-    log.debug(f"Current preferences: {preferences}")
+    log.debug(f"Current preferences: {prefs}")
 
-    if len(preferences) == 3:
-        result = df.loc[
-            (df["pricerange"] == preferences[0])
-            & (df["area"] == preferences[1])
-            & (df["food"] == preferences[2])
-        ]
-        result.reset_index(drop=True, inplace=True)
-        globals()["remaining_restaurants"] = result
-        return result
-    elif len(preferences) == 6:
-        result = df.loc[
-            (df["pricerange"] == preferences[0])
-            & (df["area"] == preferences[1])
-            & (df["food"] == preferences[2])
-            & (df["length_of_stay"] == preferences[3])
-            & (df["crowdedness"] == preferences[4])
-            & (df["food_quality"] == preferences[5])
-        ]
-        result.reset_index(drop=True, inplace=True)
-        globals()["remaining_restaurants"] = result
-        return result
-    else:
-        return "Sorry, there is no restaurant that conforms to you requirements."
+    temp = tuple()
+    for key in prefs.keys():
+        log.debug(f"k=({key}) - v=({prefs[key]})")
+        if prefs[key] == "" or prefs[key] == "unknown":
+            continue
+
+        filter = f"{key} in ('{prefs[key]}')"
+        log.debug(f"filter string: {filter}")
+        temp += (filter,)
+
+    query = " & ".join(temp)
+    log.debug(f"query: {query}")
+
+    result = df.query(query)
+    result.reset_index(drop=True, inplace=True)
+    print(f"These are the restaurants that match your preferences!\n{result}")
+
+    globals()["remaining_restaurants"] = result
+    if result.empty:
+        print(
+            "Sorry, I could not find any restaurant that conforms to your preferences."
+        )
+
+    return result
 
 
 def toString_recommended_restaurant(index):
