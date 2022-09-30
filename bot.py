@@ -7,8 +7,8 @@ dialog_tree = {
     "welcome": {
         "mode": "welcome",
         "sys_utt": "Hello! What would you like to eat?\n",
-        "exits": ["welcome", "welcome", "test_food"],
-        "exit_conditions": ['"restart" in user_utt', 'label!="inform"', "True"],
+        "exits": ["welcome", "test_food"],
+        "exit_conditions": ['label!="inform"', "True"],
     },
     "test_food": {
         "mode": "test",
@@ -37,7 +37,7 @@ dialog_tree = {
     "test_pricerange": {
         "mode": "test",
         "sys_utt": "",
-        "exits": ["ask_pricerange", "ask_extra_preferences"],
+        "exits": ["ask_pricerange", "ask_extra_preference"],
         "exit_conditions": ['not get_form("pricerange")', "True"],
     },
     "ask_pricerange": {
@@ -46,11 +46,11 @@ dialog_tree = {
         "exits": ["ask_pricerange", "test_pricerange"],
         "exit_conditions": ['not get_form("pricerange")', "True"],
     },
-    "ask_extra_preferences": {
-        "mode": "extract_extra_preferences",
-        "sys_utt": "Do you have any extra preferences?\n",
-        "exits": ["ask_extra_preferences", "confirm_choice"],
-        "exit_conditions": ['not get_form("extra_preferences")', "True"],
+    "ask_extra_preference": {
+        "mode": "extract_extra_preference",
+        "sys_utt": "Do you have any extra preference?\n",
+        "exits": ["ask_extra_preference", "confirm_choice"],
+        "exit_conditions": ['not get_form("extra_preference")', "True"],
     },
     "confirm_choice": {
         "mode": "confirm",
@@ -78,11 +78,16 @@ dialog_tree = {
 #       value['exits'].insert(0, 'welcome')
 #       value['exit_conditions'].insert(0, '"restart" in user_utt')
 
+#add capability to exit at each point in conversation
+for value in dialog_tree.values():
+    if value['mode'] != 'test':
+        value['exits'].insert(0, 'goodbye')
+        value['exit_conditions'].insert(0, 'label=="bye"')
 
 # starting states
 current_node = "welcome"
-form = {"area": "", "food": "", "pricerange": "", "extra_preferences": []}
-suggestions = []
+form = {"area": "", "food": "", "pricerange": "", "extra_preference": ""}
+suggestions = pd.DataFrame([])
 
 
 def extract_food(utt):
@@ -97,16 +102,17 @@ def extract_pricerange(utt):
     return type_match_ls.extract_pricerange(utt)
 
 
-def extract_extra_preferences(utt):
-    return type_match_ls.extract_extra_preferences(utt)
+def extract_extra_preference(utt):
+    return type_match_ls.extract_extra_preference(utt)
 
 
-def reasoning_filter(extra_preferences, restaurant_df):
+def reasoning_filter(extra_preference, restaurant_df):
     """
     args:
-      extra_preferences - list of extra preferences
+      extra_preference - extra preference string
       restaurant_df - dataframe with restaurants and their qualities
-    returns: dataframe with restaurants that satisfy inference rules for all given extra_preferences
+    returns: 
+      dataframe with restaurants that satisfy inference rules for all given extra_preferences
     """
     inference_rules = {
         "touristic": '(df["pricerange"] == "cheap") & (df["food_quality"] == "good") & (df["food"] != "romanian")',
@@ -115,8 +121,9 @@ def reasoning_filter(extra_preferences, restaurant_df):
         "romantic": '(df["crowdedness"] != "busy") & (df["length_of_stay"] == "long")',
     }
 
-    super_rule = " and ".join([inference_rules[x] for x in extra_preferences])
-    return restaurant_df.loc[eval(super_rule)]
+    #super_rule = " and ".join([inference_rules[x] for x in extra_preferences])
+    #return restaurant_df.loc[eval(super_rule)]
+    return restaurant_df.loc[eval(inference_rules[extra_preference])]
 
 
 # get, set and reset form state
@@ -137,6 +144,10 @@ def reset_form():
 
 def set_suggestions():
     global suggestions
+#     suggestions = restaurant.find_all_restaurants(
+#         restaurant.restaurants, 
+#         [suggestions['pricerange'], suggestions['area'],suggestions['food'],suggestions['extra_preference']]
+#     )
     suggestions = [
         "ChopChop, NY, 5$",
         "TratoriaVerona, Napoli, 40$",
@@ -173,6 +184,7 @@ def traverse_dialog_tree(current_node):
             set_form("food", extract_food(user_utt))
             set_form("area", extract_area(user_utt))
             set_form("pricerange", extract_pricerange(user_utt))
+            set_form("extra_preference", extract_extra_preference(user_utt))
             logging.debug(f"Forms -> {form}")
         elif "extract" in mode:
             field = eval("extract_{}(user_utt)".format(mode.split("_", 1)[1]))
@@ -197,8 +209,10 @@ def traverse_dialog_tree(current_node):
         label = classifier(user_utt)
 
     for i, condition in enumerate(conditions):
+        print(condition)
         logging.debug(f"condition {i}: {condition}")
         logging.debug(f"eval: {eval(condition)}")
+        
 
         if eval(condition):
             next_node = exits[i]
