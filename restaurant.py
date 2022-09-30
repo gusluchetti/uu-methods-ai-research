@@ -2,9 +2,8 @@ import pandas as pd
 import numpy as np
 import random
 
-import logger
+import base_logger
 
-logger = logger.get_logger()
 
 restaurants = pd.read_csv(r"restaurant_info.csv")
 food_quality = ["bad food", "okay food", "good food"]
@@ -14,6 +13,7 @@ length_of_stay = ["short", "normal", "long"]
 random_food_quality = []
 random_crowdedness = []
 random_length_of_stay = []
+
 for i in range(0, len(restaurants)):
     random_food_quality.append(random.choice(food_quality))
     random_crowdedness.append(random.choice(crowdedness))
@@ -26,6 +26,9 @@ restaurants.head()
 
 
 def find_all_restaurants(df, preferences):
+    global logger
+    logger = base_logger.get_logger()
+
     logger.debug(f"All restaurants:\n{df}")
     logger.debug(f"Current preferences: {preferences}")
 
@@ -54,17 +57,7 @@ def find_all_restaurants(df, preferences):
         return "Sorry, there is no restaurant that conforms to you requirements."
 
 
-find_all_restaurants(
-    pd.read_csv(r"restaurant_info.csv"),
-    ["moderate", "centre", "british"],
-)
-
-
-index = np.random.choice(len(globals()["remaining_restaurants"].index))
-
-
 def toString_recommended_restaurant(index):
-
     if len(globals()["remaining_restaurants"]) > 0:
         phone = globals()["remaining_restaurants"].iloc[index]["phone"]
         postcode = globals()["remaining_restaurants"].iloc[index]["postcode"]
@@ -91,3 +84,9 @@ def toString_recommended_restaurant(index):
 # print(toString_recommended_restaurant(index))
 # if len(globals()["remaining_restaurants"]) >= 1:
 # globals()["remaining_restaurants"].drop(index, axis=0, inplace=True)
+
+# find_all_restaurants(
+#    pd.read_csv(r"restaurant_info.csv"),
+#    ["moderate", "centre", "british"],
+# )
+# index = np.random.choice(len(globals()["remaining_restaurants"].index))

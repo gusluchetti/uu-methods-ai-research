@@ -1,9 +1,8 @@
+# local imports
 import type_match_ls
 import restaurant
+import base_logger
 
-import logger
-
-logger = logger.get_logger()
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {
@@ -167,7 +166,7 @@ def traverse_dialog_tree(current_node):
     exits = dialog_tree[current_node]["exits"]
     conditions = dialog_tree[current_node]["exit_conditions"]
 
-    global form
+    global form, logger
     """Traversing utterance to update form states"""
     logger.debug(
         f"\nCurrent Node: {current_node}\nMode: {mode}\nExits: {exits}\nConditions: {conditions}\nForm: {form}"
@@ -218,6 +217,10 @@ def traverse_dialog_tree(current_node):
 
 # passing functions that return predictions for the bot to use
 def start(list_models):
+    global logger
+    logger = base_logger.get_logger()
+    print(logger.name)
+
     global classifier
     print("\nHello! I'm a restaurant recommendation bot!")
     classifier_key = input(
