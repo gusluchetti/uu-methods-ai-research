@@ -1,9 +1,9 @@
 import type_match_ls
 import restaurant
 
-import logging
+import logger
 
-logger = logging.getLogger()
+logger = logger.get_logger()
 
 # TODO: add optional sys_dialog for failing conditions
 dialog_tree = {

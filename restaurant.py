@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 import random
 
-import logging
+import logger
 
-logger = logging.getLogger()
+logger = logger.get_logger()
 
 restaurants = pd.read_csv(r"restaurant_info.csv")
 food_quality = ["bad food", "okay food", "good food"]
