@@ -13,8 +13,7 @@ import pandas as pd
 import numpy as np
 import pickle
 
-# local imports
-import bot
+import bot  # local imports
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
@@ -219,7 +218,7 @@ def main():
 
 global majority_class, keyword_dict
 majority_class = "inform"
-# TODO: should we remove null completely?
+# TODO: what should we do will 'null' values?
 keyword_dict = {
     "inform": r"\blooking\b|\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
     "confirm": r"\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
