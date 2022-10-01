@@ -34,7 +34,6 @@ def set_recommendations(form):
         "children": "length_of_stay in ('long')",
         "romantic": "crowdedness not in ('busy') & length_of_stay in ('long')",
     }
-    # log.debug(f"All restaurants:\n{restaurants}")
     log.debug(f"Current preferences: {form}")
 
     filter = tuple()
@@ -51,9 +50,7 @@ def set_recommendations(form):
 
     query = " & ".join(filter)
     log.debug(f"query: {query}")
-
     result = restaurants.query(query)
-    # result.reset_index(drop=True, inplace=True)
     log.debug(f"Results:\n {result}")
     recommendations = result
 
