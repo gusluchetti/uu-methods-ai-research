@@ -1,8 +1,9 @@
+import logging
+import simple_term_menu
+
 # local imports
 import type_match_ls
 import restaurant
-
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +56,10 @@ dialog_tree = {
         "mode": "extract_extra_preference",
         "sys_utt": "Do you have any extra preference?\n",
         "exits": ["confirm_choice", "ask_extra_preference"],
-        "exit_conditions": ["label in ['negate','deny'] or get_form('extra_preference')", "True"],
+        "exit_conditions": [
+            "label in ['negate','deny'] or get_form('extra_preference')",
+            "True",
+        ],
     },
     "confirm_choice": {
         "mode": "confirm",
@@ -72,10 +76,8 @@ dialog_tree = {
             "restaurant.get_recommendations().empty",
             "True",
         ],
-    }
+    },
 }
-
-
 
 # add capability to exit at each point in conversation
 for value in dialog_tree.values():
@@ -182,10 +184,35 @@ def traverse_dialog_tree(current_node):
     set_current_node(next_node)
 
 
+def show_config_menu():
+    config_menu = simple_term_menu.TerminalMenu(
+        [
+            # TODO:
+            # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
+            "confirm_leven - Enable confirmation of correctness for Levenshtein distance matches",
+            "random_order - Enable preferences to be stated in random order",
+            "stupid_bot - Insert artificial errors in preference extraction",
+            # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
+            "enable_restart - Enable being able to restart the dialog at any moment",
+            "delayed - Introduce a delay before showing system responses",
+            "thorough - Enable confirmation for each preference",
+            "loud - OUTPUT IN ALL CAPS OR NOT",
+            "voice_assistant - Enable text-to-speech for system utterances",
+        ],
+        multi_select=True,
+        multi_select_empty_ok=True,
+        show_multi_select_hint=True,
+    )
+
+    config_menu_selected = config_menu.show()
+    return (config_menu_selected, config_menu.chosen_menu_entries)
+
+
 # passing functions that return predictions for the bot to use
 def start(list_models):
     global classifier
     print("\nHello! I'm a restaurant recommendation bot!")
+    cms, cm_entries = show_config_menu()
     classifier_key = input(
         """
 Please select a classification method (first two are baseline systems):
@@ -198,9 +225,9 @@ Please select a classification method (first two are baseline systems):
     if flag == "y":
         for value in dialog_tree.values():
             if value["mode"] != "test":
-                value['exits'].insert(0, 'welcome')
-                value['exit_conditions'].insert(0, '"restart" in user_utt')
-        
+                value["exits"].insert(0, "welcome")
+                value["exit_conditions"].insert(0, '"restart" in user_utt')
+
     classifier = list_models["2"]
     if classifier_key in list_models.keys():
         classifier = list_models[classifier_key]
