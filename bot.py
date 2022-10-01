@@ -184,35 +184,79 @@ def traverse_dialog_tree(current_node):
     set_current_node(next_node)
 
 
-def show_config_menu():
-    config_menu = simple_term_menu.TerminalMenu(
-        [
-            # TODO:
-            # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
-            "confirm_leven - Enable confirmation of correctness for Levenshtein distance matches",
-            "random_order - Enable preferences to be stated in random order",
-            "stupid_bot - Insert artificial errors in preference extraction",
-            # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
-            "enable_restart - Enable being able to restart the dialog at any moment",
-            "delayed - Introduce a delay before showing system responses",
-            "thorough - Enable confirmation for each preference",
-            "loud - OUTPUT IN ALL CAPS OR NOT",
-            "voice_assistant - Enable text-to-speech for system utterances",
-        ],
+class SingleSetting:
+    def __init__(self, key, description, enabled=False):
+        self.key = key
+        self.description = description
+        self.enabled = enabled
+
+
+def create_settings_dict():
+    # TODO:
+    # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
+    # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
+    settings_dict = [
+        SingleSetting(
+            "confirm_leven",
+            "Enable confirmation of correctness for Levenshtein distance matches",
+        ),
+        SingleSetting(
+            "random_order",
+            "Enable preferences to be stated in random order",
+        ),
+        SingleSetting(
+            "stupid_bot",
+            "Insert artificial errors in preference extraction",
+        ),
+        SingleSetting(
+            "enable_restart",
+            "Enable being able to restart the dialog at any moment",
+        ),
+        SingleSetting(
+            "delayed",
+            "Introduce a delay before showing system responses",
+        ),
+        SingleSetting(
+            "thorough",
+            "Enable confirmation for each preference",
+        ),
+        SingleSetting(
+            "loud",
+            "OUTPUT IN ALL CAPS?!",
+        ),
+        SingleSetting(
+            "voice_assistant",
+            "Enable text-to-speech for system utterances",
+        ),
+    ]
+    return settings_dict
+
+
+def show_settings_menu(settings_dict):
+    s_list = []
+    for s in settings_dict:
+        s_list.append(f"{s.key} - {s.description}")
+
+    settings = simple_term_menu.TerminalMenu(
+        s_list,
         multi_select=True,
         multi_select_empty_ok=True,
         show_multi_select_hint=True,
     )
 
-    config_menu_selected = config_menu.show()
-    return (config_menu_selected, config_menu.chosen_menu_entries)
+    settings_menu_selected = settings.show()
+    return (settings_menu_selected, settings.chosen_menu_entries)
 
 
 # passing functions that return predictions for the bot to use
 def start(list_models):
     global classifier
     print("\nHello! I'm a restaurant recommendation bot!")
-    cms, cm_entries = show_config_menu()
+    print("Settings:")
+
+    settings_dict = create_settings_dict()
+    sms, cm_entries = show_settings_menu(settings_dict)
+
     classifier_key = input(
         """
 Please select a classification method (first two are baseline systems):
