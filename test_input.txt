@@ -1,3 +1,5 @@
 things we should test for:
 "i don't have any" - when asked for extra preference
 nope, nah, weird - weird negation stuff
+
+"hide warning slice vs copy df"
