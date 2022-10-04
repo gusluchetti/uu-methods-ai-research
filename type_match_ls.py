@@ -1,12 +1,14 @@
 from Levenshtein import distance
 
 
-def bestMatchWord(word_to_match, wordtype_l):
-    """takes misspelled word and matches it with nearest value of the list of words of the same type.
-    The used distance in the levenshtein edit distance.
+def best_word_match(word_to_match, wordtype_l):
+    """
+    takes misspelled word and matches it with nearest
+    value of the list of words of the same type.
 
     args: word_to_match (str) -> the misspelled word
-          wordtype_l (list) -> list of words of the same type as word_to_match"""
+          wordtype_l (list) -> list of words of the same type as word_to_match
+    """
 
     mindist = 4
     match = ""
@@ -23,7 +25,7 @@ def bestMatchWord(word_to_match, wordtype_l):
         return False
 
 
-def bestMatchList(list_of_words, wordtype_list):
+def best_match_list(list_of_words, wordtype_list):
     "same as bestMatch but with lists as input"
     bestdist = 4
     bestmatch = ""
@@ -32,8 +34,8 @@ def bestMatchList(list_of_words, wordtype_list):
     match = ""
 
     for word in list_of_words:
-        if bestMatchWord(word, wordtype_list):
-            match, dist = bestMatchWord(word, wordtype_list)
+        if best_word_match(word, wordtype_list):
+            match, dist = best_word_match(word, wordtype_list)
             if dist <= bestdist:
                 bestdist = dist
                 bestmatch = match
@@ -47,10 +49,9 @@ def bestMatchList(list_of_words, wordtype_list):
 
 def extract_preference(user_utt):
     """
-    args :
-      user_utt - user utterance, example "I'm looking for a moderately priced restaurant in the west part of town"
-    return :
-      dictionary of fields corresponding to global preference_form filled with a (keyword | "any" | "")
+    args : user_utt - user
+    return : dictionary of fields corresponding to global preference_form
+        filled with a (keyword | "any" | "")
     """
     food_types = [
         "african",
@@ -91,15 +92,17 @@ def extract_preference(user_utt):
         "tuscan",
         "vietnamese",
     ]
+
     extra_pref_list = [
         "touristic",
         "children",
         "assigned seats",
         "romantic",
-        "sits assigned",
+        "seats assigned",
     ]
-    sentence_string = user_utt
+
     # preprocessing
+    sentence_string = user_utt
     sentence_string = sentence_string.lower()
     sentence_string = sentence_string.replace("north american", "northamerican")
     sentence_string = sentence_string.replace("modern european", "moderneuropean")
@@ -128,7 +131,7 @@ def extract_preference(user_utt):
     pricerange = ""
     extra_preference = ""
 
-    "Find the index of the word on pricerange."
+    # Find the index of the word on pricerange
     pricerange_index = -1
     if "cheap" in sentence:
         pricerange_index = sentence.index("cheap")
@@ -158,14 +161,14 @@ def extract_preference(user_utt):
         for word in sentence:
             if (word == "priced") and (sentence.index(word) != 0):
                 pricerange_candidates.append(sentence[sentence.index(word) - 1])
-        if bestMatchList(pricerange_candidates, ["moderate", "cheap", "expensive"]):
-            pricerange, misspelled_pricerange = bestMatchList(
+        if best_match_list(pricerange_candidates, ["moderate", "cheap", "expensive"]):
+            pricerange, misspelled_pricerange = best_match_list(
                 pricerange_candidates, ["moderate", "cheap", "expensive"]
             )
             pricerange_index = sentence.index(misspelled_pricerange)
 
-    """'Find the index of the word on type of food. Make sure it is not the same as the
-    one for pricerange"""
+    # Find the index of the word on type of food.
+    # Make sure it is NOT the same as the one for pricerange
     type_index = -2
     type_candidates = []
     for i, word in enumerate(sentence):
@@ -185,8 +188,8 @@ def extract_preference(user_utt):
             and (sentence.index(word) + 1 != pricerange_index)
         ):
             type_candidates.append(sentence[sentence.index(word) + 1])
-    if bestMatchList(type_candidates, food_types):
-        type_of_food, misspelled_type = bestMatchList(type_candidates, food_types)
+    if best_match_list(type_candidates, food_types):
+        type_of_food, misspelled_type = best_match_list(type_candidates, food_types)
         type_index = sentence.index(misspelled_type)
 
     "Find the index of the word on location."
@@ -223,17 +226,17 @@ def extract_preference(user_utt):
                 and (sentence.index(word) - 1 != pricerange_index)
             ):
                 location_candidates.append(sentence[sentence.index(word) - 1])
-        if bestMatchList(
+        if best_match_list(
             location_candidates, ["any", "north", "south", "west", "east", "centre"]
         ):
-            location, misspelled_location = bestMatchList(
+            location, misspelled_location = best_match_list(
                 location_candidates, ["any", "north", "south", "west", "east", "centre"]
             )
             location_index = sentence.index(misspelled_location)
 
     "Find extra preferences, if the user has any"
-    if bestMatchList(sentence, extra_pref_list):
-        extra_preference, misspelled_extra_pref = bestMatchList(
+    if best_match_list(sentence, extra_pref_list):
+        extra_preference, misspelled_extra_pref = best_match_list(
             sentence, extra_pref_list
         )
         if (
