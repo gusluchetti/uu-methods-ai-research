@@ -1,5 +1,11 @@
-things we should test for:
-"i don't have any" - when asked for extra preference
-nope, nah, weird - weird negation stuff
-
 "hide warning slice vs copy df"
+
+test points:
+- "i don't have any" - when asked for extra preference, should negate/deny
+- nope, nah, weird - weird negation stuff, should negate/deny
+- "on welcome, 'i would love to get some italian today'", classified as request, maybe add request into labels that give information?
+- "yes" on "cheap italian north" got me a goodbye message
+
+- "i would like any restaurant, any price anywhere in town"
+- "anywhere is fine"
+- "on specific states, any is related to the current state?"

@@ -255,7 +255,8 @@ def start(list_models):
     print("Settings:")
 
     settings_dict = create_settings_dict()
-    sms, cm_entries = show_settings_menu(settings_dict)
+    sms, sm_entries = show_settings_menu(settings_dict)
+    print(sms, sm_entries)
 
     classifier_key = input(
         """
