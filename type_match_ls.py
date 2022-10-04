@@ -131,7 +131,7 @@ def extract_preference(user_utt):
     pricerange = ""
     extra_preference = ""
 
-    # Find the index of the word on pricerange
+    # find the index of the word on pricerange
     pricerange_index = -1
     if "cheap" in sentence:
         pricerange_index = sentence.index("cheap")
@@ -167,8 +167,8 @@ def extract_preference(user_utt):
             )
             pricerange_index = sentence.index(misspelled_pricerange)
 
-    # Find the index of the word on type of food.
-    # Make sure it is NOT the same as the one for pricerange
+    # find the index of the word on type of food.
+    # make sure it is NOT the same as the one for pricerange
     type_index = -2
     type_candidates = []
     for i, word in enumerate(sentence):
@@ -192,7 +192,7 @@ def extract_preference(user_utt):
         type_of_food, misspelled_type = best_match_list(type_candidates, food_types)
         type_index = sentence.index(misspelled_type)
 
-    "Find the index of the word on location."
+    # find the index of the word on location.
     location_index = -3
     if "north" in sentence:
         location_index = sentence.index("north")
@@ -234,7 +234,7 @@ def extract_preference(user_utt):
             )
             location_index = sentence.index(misspelled_location)
 
-    "Find extra preferences, if the user has any"
+    # find extra preferences, if the user has any
     if best_match_list(sentence, extra_pref_list):
         extra_preference, misspelled_extra_pref = best_match_list(
             sentence, extra_pref_list
@@ -268,3 +268,8 @@ def extract_pricerange(user_utt):
 
 def extract_extra_preference(user_utt):
     return extract_preference(user_utt)["extra_preference"]
+
+
+# should be able to extract any type of info to form state
+def extract_info(info_type: str, user_utt: str):
+    return extract_preference(user_utt)[info_type]
