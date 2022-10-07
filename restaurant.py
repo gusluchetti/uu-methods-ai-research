@@ -68,14 +68,13 @@ def drop_recommendation(index):
 def get_recommendations_message():
     if len(recommendations) > 0:
         index = np.random.choice(recommendations.index.tolist())
-        # recommendations.drop(index, axis=0, inplace=True)
-        # recommendations.reset_index(drop=True, inplace=True)
         return recommendation_message(index)
     else:
         return recommendation_message(-1)
 
 
-def get_extra_requirement():
+def get_extra_preference_msg():
+    global extra_preference
     if extra_preference == "romantic":
         return (
             "The restaurant is romantic because it allows you to stay for a long time."
@@ -94,26 +93,36 @@ def recommendation_message(index):
     if index >= 0:
         phone = restaurants.iloc[index]["phone"]
         postcode = restaurants.iloc[index]["postcode"]
-        rest = restaurants.iloc[index]
 
-        string_no_phone_and_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}."
-        string_no_phone = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']})."
-        string_no_postcode = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']}. The phonenumber of the restaurant is: {rest['phone']}."
-        string_all = f"We recommend the restaurant {rest['restaurantname']}. It is a {rest['pricerange']} priced restaurant that serves {rest['food']}. It is located in the {rest['area']} on {rest['addr']} ({rest['postcode']}). The phonenumber of the restaurant is: {rest['phone']}."
-        response = ""
-        if extra_preference == "":
-            if (pd.isna(phone)) and (pd.isna(postcode)):
-                response = string_no_phone_and_postcode
-            elif pd.isna(phone):
-                response = string_no_phone
-            elif pd.isna(postcode):
-                response = string_no_postcode
-            else:
-                response = string_all
-        elif extra_preference != "":
-            response + get_extra_requirement()
+        restaurant = restaurants.iloc[index]
+        name = restaurant["restaurantname"]
+        pricerange = restaurant["pricerange"]
+        food = restaurant["food"]
+        area = restaurant["area"]
+        address = restaurant["addr"]
+        postcode = restaurant["postcode"]
+        phone = restaurant["phone"]
 
-        return (index, response + "\nIs that ok?")
+        name_price_food = f"We recommend {name}, a {pricerange} priced restaurant that serves {food} food"
+        address = f"It's located in the {area} on {address}"
+        postcode = f"({postcode})"
+        phone = f"You can call them at {phone}"
+
+        def_msg = f"{name_price_food}. {address}"
+        if (pd.isna(phone)) and (pd.isna(postcode)):
+            response = f"{def_msg}."
+        elif pd.isna(phone):
+            response = f"{def_msg}{postcode}."
+        elif pd.isna(postcode):
+            response = f"{def_msg}. {phone}."
+        else:
+            response = f"{def_msg}{postcode}. {phone}."
+
+        if extra_preference != "":
+            extra_msg = get_extra_preference_msg()
+            response = f"{response} {extra_msg}"
+
+        return (index, response + "\nDo you like that recommendation?")
 
     return (
         index,
