@@ -211,8 +211,8 @@ def enable_settings(settings_dict, selected):
 # passing functions that return predictions for the bot to use
 def start(list_models):
     global classifier
-    print("\nHello there! I'm a restaurant recommendation bot!")
 
+    print("Starting bot...")
     print("Configure your desired settings:")
     settings_dict = create_settings_dict()
     sms, sm_entries = show_settings_menu(settings_dict)
@@ -266,6 +266,8 @@ Please select a classification method (first two are baseline systems):
         if mode == "suggest":
             index, suggestion = restaurant.get_recommendations_message()
             log.debug(f"suggestions {suggestion}")
+            print(f"Number of matching restaurants: { len(restaurant.get_recommendations())}")
+
             if restaurant.get_recommendations().empty:
                 print(suggestion)
                 label = "null"
