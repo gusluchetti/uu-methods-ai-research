@@ -238,6 +238,8 @@ def create_settings_dict():
 def start(list_models):
     global classifier
     print("\nHello there! I'm a restaurant recommendation bot!")
+    print("Configure your desired settings:")
+    settings_dict = create_settings_dict()
 
     def show_settings_menu(settings_dict):
         s_list = []
@@ -251,17 +253,15 @@ def start(list_models):
             multi_select_empty_ok=True,
             show_multi_select_hint=True,
         )
-
         settings_menu_selected = settings.show()
         return (settings_menu_selected, settings.chosen_menu_entries)
 
-    print("Configure your desired settings:")
-    settings_dict = create_settings_dict()
     sms, sm_entries = show_settings_menu(settings_dict)
     log.debug(f"Enabled settings: {sm_entries}")
 
     for selected in sms:
         setting = settings_dict[selected]["key"]
+
         if setting == "enable_restart":
             for value in dialog_tree.values():
                 if value["mode"] != "test":
