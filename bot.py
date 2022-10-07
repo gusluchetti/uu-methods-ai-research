@@ -129,62 +129,6 @@ def set_current_node(new_node):
     current_node = new_node
 
 
-def traverse_dialog_tree(current_node):
-    mode = dialog_tree[current_node]["mode"]
-    sys_utt = dialog_tree[current_node]["sys_utt"]
-    exits = dialog_tree[current_node]["exits"]
-    conditions = dialog_tree[current_node]["exit_conditions"]
-
-    global form
-    """Traversing utterance to update form states"""
-    log.debug(
-        f"\nCurrent Node: {current_node}\nMode: {mode}\nExits: {exits}\nConditions: {conditions}\nForm: {form}"
-    )
-
-    mode_split = mode.split("_", 1)
-    if mode_split[0] in ["ask", "extract", "welcome"]:
-        user_utt = input(sys_utt).lower()
-        label = classifier(user_utt)
-        log.debug(f"classified utterance as {label}")
-
-        if mode == "welcome":
-            reset_form()
-            set_form("food", extract_food(user_utt))
-            set_form("area", extract_area(user_utt))
-            set_form("pricerange", extract_pricerange(user_utt))
-            set_form("extra_preference", extract_extra_preference(user_utt))
-        elif "extract" in mode:
-            field = eval(f"extract_{mode_split[1]}(user_utt)")
-            set_form(mode_split[1], field)
-
-    if mode == "suggest":
-        index, suggestion = restaurant.get_recommendations_message()
-        log.debug(f"suggestions {suggestion}")
-        if restaurant.get_recommendations().empty:
-            print(suggestion)
-            label = "null"
-        else:
-            user_utt = input(suggestion).lower()
-            label = classifier(user_utt)
-            log.debug(f"classified utterance as {label}")
-            restaurant.drop_recommendation(index)
-
-    elif mode == "confirm":
-        user_utt = input(f"{sys_utt}")
-        label = classifier(user_utt)
-        log.debug(f"classified utterance as {label}")
-        restaurant.set_recommendations(form)
-
-    # eval exit conditions
-    for i, condition in enumerate(conditions):
-        log.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
-        if eval(condition):
-            next_node = exits[i]
-            break
-
-    set_current_node(next_node)
-
-
 def create_settings_dict():
     # TODO:
     # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
@@ -234,33 +178,25 @@ def create_settings_dict():
     return settings_dict
 
 
-# passing functions that return predictions for the bot to use
-def start(list_models):
-    global classifier
-    print("\nHello there! I'm a restaurant recommendation bot!")
-    print("Configure your desired settings:")
-    settings_dict = create_settings_dict()
+def show_settings_menu(settings_dict):
+    s_list = []
+    for s in settings_dict:
+        key, desc = s["key"], s["description"]
+        s_list.append(f"{key} - {desc}")
 
-    def show_settings_menu(settings_dict):
-        s_list = []
-        for s in settings_dict:
-            key, desc = s["key"], s["description"]
-            s_list.append(f"{key} - {desc}")
+    settings = simple_term_menu.TerminalMenu(
+        s_list,
+        multi_select=True,
+        multi_select_empty_ok=True,
+        show_multi_select_hint=True,
+    )
+    settings_menu_selected = settings.show()
+    return (settings_menu_selected, settings.chosen_menu_entries)
 
-        settings = simple_term_menu.TerminalMenu(
-            s_list,
-            multi_select=True,
-            multi_select_empty_ok=True,
-            show_multi_select_hint=True,
-        )
-        settings_menu_selected = settings.show()
-        return (settings_menu_selected, settings.chosen_menu_entries)
 
-    sms, sm_entries = show_settings_menu(settings_dict)
-    log.debug(f"Enabled settings: {sm_entries}")
-
-    for selected in sms:
-        setting = settings_dict[selected]["key"]
+def enable_settings(settings_dict, selected):
+    for s in selected:
+        setting = settings_dict[s]["key"]
 
         if setting == "enable_restart":
             for value in dialog_tree.values():
@@ -271,7 +207,18 @@ def start(list_models):
             # upper all sys utts
             print('loud')
 
-    # selection of classification method
+
+# passing functions that return predictions for the bot to use
+def start(list_models):
+    global classifier
+    print("\nHello there! I'm a restaurant recommendation bot!")
+
+    print("Configure your desired settings:")
+    settings_dict = create_settings_dict()
+    sms, sm_entries = show_settings_menu(settings_dict)
+    enable_settings(settings_dict, sms)
+    log.debug(f"Enabled settings: {sm_entries}")
+
     classifier_key = input(
         """
 Please select a classification method (first two are baseline systems):
@@ -289,6 +236,57 @@ Please select a classification method (first two are baseline systems):
 
     global current_node
     while current_node != "goodbye":
-        traverse_dialog_tree(current_node)
-        if current_node == "goodbye":
-            print("Goodbye!")
+        mode = dialog_tree[current_node]["mode"]
+        sys_utt = dialog_tree[current_node]["sys_utt"]
+        exits = dialog_tree[current_node]["exits"]
+        conditions = dialog_tree[current_node]["exit_conditions"]
+
+        global form
+        """Traversing utterance to update form states"""
+        log.debug(
+            f"\nCurrent Node: {current_node}\nMode: {mode}\nExits: {exits}\nConditions: {conditions}\nForm: {form}"
+        )
+
+        mode_split = mode.split("_", 1)
+        if mode_split[0] in ["ask", "extract", "welcome"]:
+            user_utt = input(sys_utt).lower()
+            label = classifier(user_utt)
+            log.debug(f"classified utterance as {label}")
+
+            if mode == "welcome":
+                reset_form()
+                set_form("food", extract_food(user_utt))
+                set_form("area", extract_area(user_utt))
+                set_form("pricerange", extract_pricerange(user_utt))
+                set_form("extra_preference", extract_extra_preference(user_utt))
+            elif "extract" in mode:
+                field = eval(f"extract_{mode_split[1]}(user_utt)")
+                set_form(mode_split[1], field)
+
+        if mode == "suggest":
+            index, suggestion = restaurant.get_recommendations_message()
+            log.debug(f"suggestions {suggestion}")
+            if restaurant.get_recommendations().empty:
+                print(suggestion)
+                label = "null"
+            else:
+                user_utt = input(suggestion).lower()
+                label = classifier(user_utt)
+                log.debug(f"classified utterance as {label}")
+                restaurant.drop_recommendation(index)
+
+        elif mode == "confirm":
+            user_utt = input(f"{sys_utt}")
+            label = classifier(user_utt)
+            log.debug(f"classified utterance as {label}")
+            restaurant.set_recommendations(form)
+
+        # eval exit conditions
+        for i, condition in enumerate(conditions):
+            log.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
+            if eval(condition):
+                next_node = exits[i]
+                break
+
+        set_current_node(next_node)
+    print("Goodbye! Thanks for using our bot!")
