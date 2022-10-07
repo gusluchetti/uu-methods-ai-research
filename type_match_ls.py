@@ -1,6 +1,12 @@
+import logging
 from Levenshtein import distance
 
+log = logging.getLogger(__name__)
 
+
+# IMPORTANT TODO:
+# populate list of price ranges, locations and food types based on
+# restaurant dataframe uniques (for each of the columns?)
 def best_word_match(word_to_match, wordtype_l):
     """
     takes misspelled word and matches it with nearest
@@ -132,31 +138,23 @@ def extract_preference(user_utt):
     extra_preference = ""
 
     # find the index of the word on pricerange
+    price_ranges = [
+        "any",
+        "cheap",
+        "moderate",
+        "expensive"
+    ]
     pricerange_index = -1
-    if "cheap" in sentence:
-        pricerange_index = sentence.index("cheap")
-        pricerange = "cheap"
-    elif "expensive" in sentence:
-        pricerange_index = sentence.index("expensive")
-        pricerange = "expensive"
-    elif "moderate" in sentence:
-        pricerange_index = sentence.index("moderate")
-        pricerange = "moderate"
-    elif ("any cost" in sentence_string) or ("any price" in sentence_string):
-        i = 0
-        end = False
-        while not end:
-            if (sentence[i] == "any") and (
-                (sentence[i + 1] == "price") or (sentence[i + 1] == "cost")
-            ):
-                pricerange_index = i
-                pricerange = sentence[i]
-                end = True
-            i = i + 1
-    else:
-        """If no keyword was matched, look at positions in sentence where you would
-        expect to find a price. Choose the word from that position
-        which has the lowest Levenshtein edit distance from our keywords."""
+
+    for price in price_ranges:
+        if price in sentence:
+            pricerange_index = sentence.index(price)
+            pricerange = price
+
+    # If no keyword was matched, look at positions in sentence where you would
+    # expect to find a price. Choose the word from that position
+    # which has the lowest Levenshtein edit distance from our keywords
+    if pricerange == "":
         pricerange_candidates = []
         for word in sentence:
             if (word == "priced") and (sentence.index(word) != 0):
@@ -166,6 +164,8 @@ def extract_preference(user_utt):
                 pricerange_candidates, ["moderate", "cheap", "expensive"]
             )
             pricerange_index = sentence.index(misspelled_pricerange)
+
+    log.debug(f"got {pricerange} price range")
 
     # find the index of the word on type of food.
     # make sure it is NOT the same as the one for pricerange
@@ -192,31 +192,28 @@ def extract_preference(user_utt):
         type_of_food, misspelled_type = best_match_list(type_candidates, food_types)
         type_index = sentence.index(misspelled_type)
 
+    log.debug(f"got {type_of_food} food type")
+
     # find the index of the word on location.
+    locations = [
+        "any",
+        "north",
+        "east",
+        "west",
+        "south",
+        "center"
+    ]
     location_index = -3
-    if "north" in sentence:
-        location_index = sentence.index("north")
-        location = "north"
-    elif "south" in sentence:
-        location_index = sentence.index("south")
-        location = "south"
-    elif "west" in sentence:
-        location_index = sentence.index("west")
-        location = "west"
-    elif "east" in sentence:
-        location_index = sentence.index("east")
-        location = "east"
-    elif "centre" in sentence:
-        location_index = sentence.index("centre")
-        location = "centre"
-    elif "center" in sentence:
-        location_index = sentence.index("center")
-        location = "centre"
-    else:
-        """If no keyword was matched, look at positions in sentence where you would
-        expect to find a location. If no keyword relative to another category (type
-        or pricerange) was found at that position, choose the word from that position
-        which has the lowest Levenshtein edit distance from our keywords."""
+    for local in locations:
+        if local in sentence:
+            location_index = sentence.index(local)
+            location = local
+
+    # If no keyword was matched, look at positions in sentence where you would
+    # expect to find a location. If no keyword relative to another category (type
+    # or pricerange) was found at that position, choose the word from that position
+    # which has the lowest Levenshtein edit distance from our keywords
+    if location == "":
         location_candidates = []
         for word in sentence:
             if (
@@ -226,13 +223,13 @@ def extract_preference(user_utt):
                 and (sentence.index(word) - 1 != pricerange_index)
             ):
                 location_candidates.append(sentence[sentence.index(word) - 1])
-        if best_match_list(
-            location_candidates, ["any", "north", "south", "west", "east", "centre"]
-        ):
+        if best_match_list(location_candidates, locations):
             location, misspelled_location = best_match_list(
-                location_candidates, ["any", "north", "south", "west", "east", "centre"]
+                location_candidates, locations
             )
             location_index = sentence.index(misspelled_location)
+
+    log.debug(f"got {location} location")
 
     # find extra preferences, if the user has any
     if best_match_list(sentence, extra_pref_list):
@@ -268,8 +265,3 @@ def extract_pricerange(user_utt):
 
 def extract_extra_preference(user_utt):
     return extract_preference(user_utt)["extra_preference"]
-
-
-# should be able to extract any type of info to form state
-def extract_info(info_type: str, user_utt: str):
-    return extract_preference(user_utt)[info_type]

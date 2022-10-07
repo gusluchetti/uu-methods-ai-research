@@ -8,13 +8,30 @@ import restaurant
 log = logging.getLogger(__name__)
 
 
+# get, set and reset form state
+def get_form(field):
+    global form
+    return form[field]
+
+
+def set_form(field, input):
+    global form
+    form[field] = input
+
+
+def reset_form():
+    global form
+    form = {field: "" for field in form}
+
+
 # TODO: add optional sys_dialog for failing conditions
+# we should alawys get out of the welcome node right?
 dialog_tree = {
     "welcome": {
         "mode": "welcome",
-        "sys_utt": "Hello! What would you like to eat?\n",
-        "exits": ["welcome", "test_food"],
-        "exit_conditions": ['label!="inform"', "True"],
+        "sys_utt": "Hello! What kind of restaurant are you looking for?\n",
+        "exits": ["test_food"],
+        "exit_conditions": ["True"],
     },
     "test_food": {
         "mode": "test",
@@ -63,7 +80,8 @@ dialog_tree = {
     },
     "confirm_choice": {
         "mode": "confirm",
-        "sys_utt": "You would like to eat {}, {} food in {}, correct?\n",
+        "sys_utt": "You would like to eat {get_form(pricerange)}, \
+        {get_form(food)} food in the {get_form(area)} part of town, correct?\n",
         "exits": ["welcome", "suggest_restaurant"],
         "exit_conditions": ["label in ['negate','deny']", "True"],
     },
@@ -106,22 +124,6 @@ def extract_extra_preference(utt):
     return type_match_ls.extract_extra_preference(utt)
 
 
-# get, set and reset form state
-def get_form(field):
-    global form
-    return form[field]
-
-
-def set_form(field, input):
-    global form
-    form[field] = input
-
-
-def reset_form():
-    global form
-    form = {field: "" for field in form}
-
-
 def set_current_node(new_node):
     global current_node
     current_node = new_node
@@ -152,7 +154,7 @@ def traverse_dialog_tree(current_node):
             set_form("pricerange", extract_pricerange(user_utt))
             set_form("extra_preference", extract_extra_preference(user_utt))
         elif "extract" in mode:
-            field = eval("extract_{}(user_utt)".format(mode_split[1]))
+            field = eval(f"extract_{mode_split[1]}(user_utt)")
             set_form(mode_split[1], field)
 
     if mode == "suggest":
@@ -168,13 +170,12 @@ def traverse_dialog_tree(current_node):
             restaurant.drop_recommendation(index)
 
     elif mode == "confirm":
-        user_utt = input(
-            sys_utt.format(get_form("pricerange"), get_form("food"), get_form("area"))
-        ).lower()
+        user_utt = input(f"{sys_utt}")
         label = classifier(user_utt)
         log.debug(f"classified utterance as {label}")
         restaurant.set_recommendations(form)
 
+    # eval exit conditions
     for i, condition in enumerate(conditions):
         log.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
         if eval(condition):
@@ -184,80 +185,93 @@ def traverse_dialog_tree(current_node):
     set_current_node(next_node)
 
 
-class SingleSetting:
-    def __init__(self, key, description, enabled=False):
-        self.key = key
-        self.description = description
-        self.enabled = enabled
-
-
 def create_settings_dict():
     # TODO:
     # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
     # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
     settings_dict = [
-        SingleSetting(
-            "confirm_leven",
-            "Enable confirmation of correctness for Levenshtein distance matches",
-        ),
-        SingleSetting(
-            "random_order",
-            "Enable preferences to be stated in random order",
-        ),
-        SingleSetting(
-            "stupid_bot",
-            "Insert artificial errors in preference extraction",
-        ),
-        SingleSetting(
-            "enable_restart",
-            "Enable being able to restart the dialog at any moment",
-        ),
-        SingleSetting(
-            "delayed",
-            "Introduce a delay before showing system responses",
-        ),
-        SingleSetting(
-            "thorough",
-            "Enable confirmation for each preference",
-        ),
-        SingleSetting(
-            "loud",
-            "OUTPUT IN ALL CAPS?!",
-        ),
-        SingleSetting(
-            "voice_assistant",
-            "Enable text-to-speech for system utterances",
-        ),
+        {
+            "key": "confirm_leven",
+            "description": "Enable confirmation of correctness for Levenshtein distance matches",
+            "is_enabled": False
+        },
+        {
+            "key": "random_order",
+            "description": "Enable preferences to be stated in random order",
+            "is_enabled": False
+        },
+        {
+            "key": "stupid_bot",
+            "description": "Insert artificial errors in preference extraction",
+            "is_enabled": False
+        },
+        {
+            "key": "enable_restart",
+            "description": "Enable being able to restart the dialog at any moment",
+            "is_enabled": False
+        },
+        {
+            "key": "delayed",
+            "description": "Introduce a delay before showing system responses",
+            "is_enabled": False
+        },
+        {
+            "key": "thorough",
+            "description": "Enable confirmation for each preference",
+            "is_enabled": False
+        },
+        {
+            "key": "loud",
+            "description": "OUTPUT IN ALL CAPS!!",
+            "is_enabled": False
+        },
+        {
+            "key": "voice_assistant",
+            "description": "Enable text-to-speech for system utterances",
+            "is_enabled": False
+        }
     ]
     return settings_dict
-
-
-def show_settings_menu(settings_dict):
-    s_list = []
-    for s in settings_dict:
-        s_list.append(f"{s.key} - {s.description}")
-
-    settings = simple_term_menu.TerminalMenu(
-        s_list,
-        multi_select=True,
-        multi_select_empty_ok=True,
-        show_multi_select_hint=True,
-    )
-
-    settings_menu_selected = settings.show()
-    return (settings_menu_selected, settings.chosen_menu_entries)
 
 
 # passing functions that return predictions for the bot to use
 def start(list_models):
     global classifier
-    print("\nHello! I'm a restaurant recommendation bot!")
-    print("Settings:")
+    print("\nHello there! I'm a restaurant recommendation bot!")
 
+    def show_settings_menu(settings_dict):
+        s_list = []
+        for s in settings_dict:
+            key, desc = s["key"], s["description"]
+            s_list.append(f"{key} - {desc}")
+
+        settings = simple_term_menu.TerminalMenu(
+            s_list,
+            multi_select=True,
+            multi_select_empty_ok=True,
+            show_multi_select_hint=True,
+        )
+
+        settings_menu_selected = settings.show()
+        return (settings_menu_selected, settings.chosen_menu_entries)
+
+    print("Configure your desired settings:")
     settings_dict = create_settings_dict()
     sms, sm_entries = show_settings_menu(settings_dict)
-    print(sms, sm_entries)
+    log.debug(f"Enabled settings: {sm_entries}")
 
+    for selected in sms:
+        setting = settings_dict[selected]["key"]
+        if setting == "enable_restart":
+            for value in dialog_tree.values():
+                if value["mode"] != "test":
+                    value["exits"].insert(0, "welcome")
+                    value["exit_conditions"].insert(0, '"restart" in user_utt')
+        if setting == "loud":
+            # upper all sys utts
+            print('loud')
+
+    # selection of classification method
     classifier_key = input(
         """
 Please select a classification method (first two are baseline systems):
@@ -266,16 +280,10 @@ Please select a classification method (first two are baseline systems):
 [3] - Logistic Regression
 [4] - Multinomial Naive-Bayes\n"""
     )
-    flag = input("Do you want to be able to restart conversation? [y/n]\n")
-    if flag == "y":
-        for value in dialog_tree.values():
-            if value["mode"] != "test":
-                value["exits"].insert(0, "welcome")
-                value["exit_conditions"].insert(0, '"restart" in user_utt')
-
     classifier = list_models["2"]
     if classifier_key in list_models.keys():
         classifier = list_models[classifier_key]
+        print(f"Using model {classifier_key}")
     else:
         print("Using default model (keyword matching)")
 
