@@ -281,7 +281,7 @@ Please select a classification method (first two are baseline systems):
             log.debug(f"classified utterance as {label}")
             restaurant.set_recommendations(form)
 
-        # eval exit conditions
+        # evaluate exit conditions
         for i, condition in enumerate(conditions):
             log.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
             if eval(condition):
