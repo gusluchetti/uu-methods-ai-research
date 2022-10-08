@@ -106,7 +106,7 @@ def extract_area(user_utt):
     log.debug(f"got {location} location")
 
     form["area"] = location
-    return form
+    return location
 
 
 def extract_pricerange(user_utt):
@@ -144,7 +144,7 @@ def extract_pricerange(user_utt):
     log.debug(f"got {pricerange} price range")
 
     form["pricerange"] = pricerange
-    return form
+    return pricerange
 
 
 def extract_food(user_utt):
@@ -196,7 +196,7 @@ def extract_food(user_utt):
     type_index = -2
     type_candidates = []
     for i, word in enumerate(user_utt):
-        if word in food_types and word != "any":
+        if word in food_types:
             type_of_food = word
             type_index = user_utt.index(word)
             break
@@ -219,7 +219,7 @@ def extract_food(user_utt):
     log.debug(f"got {type_of_food} food type")
 
     form["food"] = type_of_food
-    return form
+    return type_of_food
 
 
 def extract_extra_preference(user_utt):
@@ -246,4 +246,4 @@ def extract_extra_preference(user_utt):
             extra_preference = "unknown"
 
     form["extra_preference"] = extra_preference
-    return form
+    return extra_preference
