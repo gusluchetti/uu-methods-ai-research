@@ -8,20 +8,53 @@ import restaurant
 log = logging.getLogger(__name__)
 
 
-# get, set and reset form state
-def get_form(field):
-    global form
-    return form[field]
-
-
-def set_form(field, input):
-    global form
-    form[field] = input
-
-
-def reset_form():
-    global form
-    form = {field: "" for field in form}
+def create_settings_dict():
+    # TODO:
+    # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
+    # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
+    settings_dict = [
+        {
+            "key": "confirm_leven",
+            "description": "Enable confirmation of correctness for Levenshtein distance matches",
+            "is_enabled": False
+        },
+        {
+            "key": "random_order",
+            "description": "Enable preferences to be stated in random order",
+            "is_enabled": False
+        },
+        {
+            "key": "stupid_bot",
+            "description": "Insert artificial errors in preference extraction",
+            "is_enabled": False
+        },
+        {
+            "key": "enable_restart",
+            "description": "Enable being able to restart the dialog at any moment",
+            "is_enabled": False
+        },
+        {
+            "key": "delayed",
+            "description": "Introduce a delay before showing system responses",
+            "is_enabled": False
+        },
+        {
+            "key": "thorough",
+            "description": "Enable confirmation for each preference",
+            "is_enabled": False
+        },
+        {
+            "key": "loud",
+            "description": "OUTPUT IN ALL CAPS!!",
+            "is_enabled": False
+        },
+        {
+            "key": "voice_assistant",
+            "description": "Enable text-to-speech for system utterances",
+            "is_enabled": False
+        }
+    ]
+    return settings_dict
 
 
 # TODO: add optional sys_dialog for failing conditions
@@ -80,8 +113,7 @@ dialog_tree = {
     },
     "confirm_choice": {
         "mode": "confirm",
-        "sys_utt": "You would like to eat {get_form(pricerange)}, \
-        {get_form(food)} food in the {get_form(area)} part of town, correct?\n",
+        "sys_utt": "I understood that you'd like to have {}, {} food in the {} part of town, did I get that right?\n",
         "exits": ["welcome", "suggest_restaurant"],
         "exit_conditions": ["label in ['negate','deny']", "True"],
     },
@@ -102,6 +134,23 @@ for value in dialog_tree.values():
     if value["mode"] != "test":
         value["exits"].insert(0, "goodbye")
         value["exit_conditions"].insert(0, 'label=="bye"')
+
+
+# get, set and reset form state
+def get_form(field):
+    global form
+    return form[field]
+
+
+def set_form(field, input):
+    global form
+    form[field] = input
+
+
+def reset_form():
+    global form
+    form = {field: "" for field in form}
+
 
 # starting states
 current_node = "welcome"
@@ -127,55 +176,6 @@ def extract_extra_preference(utt):
 def set_current_node(new_node):
     global current_node
     current_node = new_node
-
-
-def create_settings_dict():
-    # TODO:
-    # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
-    # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
-    settings_dict = [
-        {
-            "key": "confirm_leven",
-            "description": "Enable confirmation of correctness for Levenshtein distance matches",
-            "is_enabled": False
-        },
-        {
-            "key": "random_order",
-            "description": "Enable preferences to be stated in random order",
-            "is_enabled": False
-        },
-        {
-            "key": "stupid_bot",
-            "description": "Insert artificial errors in preference extraction",
-            "is_enabled": False
-        },
-        {
-            "key": "enable_restart",
-            "description": "Enable being able to restart the dialog at any moment",
-            "is_enabled": False
-        },
-        {
-            "key": "delayed",
-            "description": "Introduce a delay before showing system responses",
-            "is_enabled": False
-        },
-        {
-            "key": "thorough",
-            "description": "Enable confirmation for each preference",
-            "is_enabled": False
-        },
-        {
-            "key": "loud",
-            "description": "OUTPUT IN ALL CAPS!!",
-            "is_enabled": False
-        },
-        {
-            "key": "voice_assistant",
-            "description": "Enable text-to-speech for system utterances",
-            "is_enabled": False
-        }
-    ]
-    return settings_dict
 
 
 def show_settings_menu(settings_dict):
@@ -263,25 +263,25 @@ Please select a classification method (first two are baseline systems):
                 field = eval(f"extract_{mode_split[1]}(user_utt)")
                 set_form(mode_split[1], field)
 
-        if mode == "suggest":
-            index, suggestion = restaurant.get_recommendations_message()
-            log.debug(f"suggestions {suggestion}")
-            print(f"Number of matching restaurants: { len(restaurant.get_recommendations())}")
-
-            if restaurant.get_recommendations().empty:
-                print(suggestion)
-                label = "null"
-            else:
-                user_utt = input(suggestion).lower()
-                label = classifier(user_utt)
-                log.debug(f"classified utterance as {label}")
-                restaurant.drop_recommendation(index)
-
-        elif mode == "confirm":
-            user_utt = input(f"{sys_utt}")
+        if mode == "confirm":
+            user_utt = input(sys_utt.format(get_form("pricerange"), get_form("food"), get_form("area")))
             label = classifier(user_utt)
             log.debug(f"classified utterance as {label}")
             restaurant.set_recommendations(form)
+
+        elif mode == "suggest":
+            recommendations = restaurant.get_recommendations()
+            print(f"Number of matching restaurants: {len(recommendations)}")
+            index, sys_utt = restaurant.get_recommendations_message()
+
+            if recommendations.empty:
+                print(sys_utt)
+                label = "null"
+            else:
+                user_utt = input(sys_utt).lower()
+                label = classifier(user_utt)
+                log.debug(f"classified utterance as {label}")
+                restaurant.drop_recommendation(index)
 
         # evaluate exit conditions
         for i, condition in enumerate(conditions):
