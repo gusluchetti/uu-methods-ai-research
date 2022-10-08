@@ -31,7 +31,7 @@ def set_recommendations(form):
     inference_rules = {
         "touristic": "pricerange in ('cheap') & food_quality in ('good') & food not in ('romanian')",
         "assigned seats": "crowdedness in ('busy')",
-        "children": "length_of_stay in ('long')",
+        "children": "length_of_stay not in ('long')",
         "romantic": "crowdedness not in ('busy') & length_of_stay in ('long')",
     }
     log.debug(f"Current preferences: {form}")
@@ -67,8 +67,8 @@ def get_recommendations():
 
 
 def drop_recommendation(index):
-    global recommendation
-    recommendations.drop(index, axis=0, inplace=True)
+    global recommendations
+    recommendations = recommendations.drop(index, axis=0, inplace=True)
 
 
 def get_recommendations_message():
@@ -97,9 +97,6 @@ def get_extra_preference_msg():
 
 def recommendation_message(index):
     if index >= 0:
-        phone = restaurants.iloc[index]["phone"]
-        postcode = restaurants.iloc[index]["postcode"]
-
         restaurant = restaurants.iloc[index]
         name = restaurant["restaurantname"]
         pricerange = restaurant["pricerange"]

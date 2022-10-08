@@ -7,6 +7,7 @@
 
 import re
 import os
+import multiprocessing
 import sys
 import logging
 import pandas as pd
@@ -238,4 +239,9 @@ keyword_dict = {
 }
 
 if __name__ == "__main__":
+    # FIX: weird fix for num expr complaining about unset thread number
+    threads = multiprocessing.cpu_count()
+    log.debug(f"n threads: {threads}")
+    os.putenv("NUMEXPR_NUM_THREADS", f"{threads}")
+
     main()
