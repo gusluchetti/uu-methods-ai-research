@@ -43,16 +43,22 @@ def set_recommendations(form):
             continue
         if key == "extra_preference":
             temp = inference_rules[form[key]]
+            filter += (temp,)
         else:
             temp = f"{key} in ('{form[key]}')"
+            filter += (temp,)
         log.debug(f"filter string: {filter}")
-        filter += (temp,)
 
-    query = " & ".join(filter)
-    log.debug(f"query: {query}")
-    result = restaurants.query(query)
-    log.debug(f"Results:\n {result}")
-    recommendations = result
+    log.debug(f"total restaurants: {restaurants.size}")
+    if not filter:
+        recommendations = restaurants
+    else:
+        query = " & ".join(filter)
+        log.debug(f"query: {query}")
+        result = restaurants.query(query)
+        log.debug(f"Results:\n {result}")
+
+        recommendations = result
 
 
 def get_recommendations():
