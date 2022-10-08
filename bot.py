@@ -1,5 +1,5 @@
 import logging
-import simple_term_menu
+from pick import pick
 
 # local imports
 import type_match_ls
@@ -184,20 +184,16 @@ def show_settings_menu(settings_dict):
         key, desc = s["key"], s["description"]
         s_list.append(f"{key} - {desc}")
 
-    settings = simple_term_menu.TerminalMenu(
-        s_list,
-        multi_select=True,
-        multi_select_empty_ok=True,
-        show_multi_select_hint=True,
-    )
-    settings_menu_selected = settings.show()
-    return (settings_menu_selected, settings.chosen_menu_entries)
+    title = "Configure your desired settings: "
+    options = s_list
+    selected = pick(options, title, multiselect=True, min_selection_count=0)
+    return (selected)  # list of tuples
 
 
 def enable_settings(settings_dict, selected):
+    log.debug(f"Selected options: {selected}")
     for s in selected:
-        setting = settings_dict[s]["key"]
-
+        setting = settings_dict[s[1]]["key"]
         if setting == "enable_restart":
             for value in dialog_tree.values():
                 if value["mode"] != "test":
@@ -213,11 +209,10 @@ def start(list_models):
     global classifier
 
     print("Starting bot...")
-    print("Configure your desired settings:")
+
     settings_dict = create_settings_dict()
-    sms, sm_entries = show_settings_menu(settings_dict)
-    enable_settings(settings_dict, sms)
-    log.debug(f"Enabled settings: {sm_entries}")
+    selected = show_settings_menu(settings_dict)
+    enable_settings(settings_dict, selected)
 
     classifier_key = input(
         """

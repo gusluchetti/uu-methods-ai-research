@@ -99,6 +99,17 @@ pytz = ">=2020.1"
 test = ["hypothesis (>=5.5.3)", "pytest (>=6.0)", "pytest-xdist (>=1.31)"]
 
 [[package]]
+name = "pick"
+version = "2.0.2"
+description = "Pick an option in the terminal with a simple GUI"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+windows-curses = {version = ">=2.2.0,<3.0.0", markers = "sys_platform == \"win32\""}
+
+[[package]]
 name = "pluggy"
 version = "1.0.0"
 description = "plugin and hook calling mechanisms for python"
@@ -222,14 +233,6 @@ python-versions = ">=3.8,<3.12"
 numpy = ">=1.18.5,<1.25.0"
 
 [[package]]
-name = "simple-term-menu"
-version = "1.5.1"
-description = "A Python package which creates simple interactive menus on the command line."
-category = "main"
-optional = false
-python-versions = "~=3.5"
-
-[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -281,10 +284,18 @@ notebook = ["ipywidgets (>=6)"]
 slack = ["slack-sdk"]
 telegram = ["requests"]
 
+[[package]]
+name = "windows-curses"
+version = "2.3.0"
+description = "Support for the standard curses module on Windows"
+category = "main"
+optional = false
+python-versions = "*"
+
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "b330e15dfbe35397cc7e8daf0b1b07c0446b0e27d7f62054a9c2c676d8fd08e2"
+content-hash = "a84d184a923b10734c50b463dc5435a8f29710712a962522dda1c6d8d275a88c"
 
 [metadata.files]
 attrs = [
@@ -568,6 +579,10 @@ pandas = [
     {file = "pandas-1.5.0-cp39-cp39-win_amd64.whl", hash = "sha256:8a4fc04838615bf0a8d3a03ed68197f358054f0df61f390bcc64fbe39e3d71ec"},
     {file = "pandas-1.5.0.tar.gz", hash = "sha256:3ee61b881d2f64dd90c356eb4a4a4de75376586cd3c9341c6c0fcaae18d52977"},
 ]
+pick = [
+    {file = "pick-2.0.2-py3-none-any.whl", hash = "sha256:22f6fb1669cddedf5f5de779c76b43161480170b30afbc7822c02cfda755a09a"},
+    {file = "pick-2.0.2.tar.gz", hash = "sha256:fe40c945fc90a4bc5cc92200d78e32a6b2a43ed8eff67416ef946f805fbf90a7"},
+]
 pluggy = [
     {file = "pluggy-1.0.0-py2.py3-none-any.whl", hash = "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"},
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
@@ -741,10 +756,6 @@ scipy = [
     {file = "scipy-1.9.1-cp39-cp39-win_amd64.whl", hash = "sha256:90c805f30c46cf60f1e76e947574f02954d25e3bb1e97aa8a07bc53aa31cf7d1"},
     {file = "scipy-1.9.1.tar.gz", hash = "sha256:26d28c468900e6d5fdb37d2812ab46db0ccd22c63baa095057871faa3a498bc9"},
 ]
-simple-term-menu = [
-    {file = "simple-term-menu-1.5.1.tar.gz", hash = "sha256:ed09b261e427f3158584de87964d70aaf26b9528f8a04176e884c8d071a80d98"},
-    {file = "simple_term_menu-1.5.1-py3-none-any.whl", hash = "sha256:30af4e3cc2db0187c1ac043f9dd61e338e17db62895c4a43a1659eaa747d6198"},
-]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
@@ -763,4 +774,16 @@ tomli = [
 tqdm = [
     {file = "tqdm-4.64.1-py2.py3-none-any.whl", hash = "sha256:6fee160d6ffcd1b1c68c65f14c829c22832bc401726335ce92c52d395944a6a1"},
     {file = "tqdm-4.64.1.tar.gz", hash = "sha256:5f4f682a004951c1b450bc753c710e9280c5746ce6ffedee253ddbcbf54cf1e4"},
+]
+windows-curses = [
+    {file = "windows_curses-2.3.0-cp310-cp310-win32.whl", hash = "sha256:a3a63a0597729e10f923724c2cf972a23ea677b400d2387dee1d668cf7116177"},
+    {file = "windows_curses-2.3.0-cp310-cp310-win_amd64.whl", hash = "sha256:7a35eda4cb120b9e1a5ae795f3bc06c55b92c9d391baba6be1903285a05f3551"},
+    {file = "windows_curses-2.3.0-cp36-cp36m-win32.whl", hash = "sha256:4d5fb991d1b90a41c2332f02241a1f84c8a1e6bc8f6e0d26f532d0da7a9f7b51"},
+    {file = "windows_curses-2.3.0-cp36-cp36m-win_amd64.whl", hash = "sha256:170c0d941c2e0cdf864e7f0441c1bdf0709232bf4aa7ce7f54d90fc76a4c0504"},
+    {file = "windows_curses-2.3.0-cp37-cp37m-win32.whl", hash = "sha256:d5cde8ec6d582aa77af791eca54f60858339fb3f391945f9cad11b1ab71062e3"},
+    {file = "windows_curses-2.3.0-cp37-cp37m-win_amd64.whl", hash = "sha256:e913dc121446d92b33fe4f5bcca26d3a34e4ad19f2af160370d57c3d1e93b4e1"},
+    {file = "windows_curses-2.3.0-cp38-cp38-win32.whl", hash = "sha256:fbc2131cec57e422c6660e6cdb3420aff5be5169b8e45bb7c471f884b0590a2b"},
+    {file = "windows_curses-2.3.0-cp38-cp38-win_amd64.whl", hash = "sha256:cc5fa913780d60f4a40824d374a4f8ca45b4e205546e83a2d85147315a57457e"},
+    {file = "windows_curses-2.3.0-cp39-cp39-win32.whl", hash = "sha256:935be95cfdb9213f6f5d3d5bcd489960e3a8fbc9b574e7b2e8a3a3cc46efff49"},
+    {file = "windows_curses-2.3.0-cp39-cp39-win_amd64.whl", hash = "sha256:c860f596d28377e47f322b7382be4d3573fd76d1292234996bb7f72e0bc0ed0d"},
 ]
