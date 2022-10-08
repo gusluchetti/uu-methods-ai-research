@@ -75,7 +75,7 @@ def extract_area(user_utt):
         "east",
         "west",
         "south",
-        "center"
+        "centre"
     ]
     location_index = -3
     for local in locations:
