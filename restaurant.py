@@ -68,7 +68,8 @@ def get_recommendations():
 
 def drop_recommendation(index):
     global recommendations
-    recommendations = recommendations.drop(index, axis=0, inplace=True)
+    dropped = recommendations.copy().drop(index, axis=0)
+    recommendations = dropped
 
 
 def get_recommendations_message():
