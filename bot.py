@@ -271,8 +271,8 @@ Please select a classification method (first two are baseline systems):
 
         elif mode == "suggest":
             recommendations = restaurant.get_recommendations()
-            print(f"Number of matching restaurants: {len(recommendations)}")
             index, sys_utt = restaurant.get_recommendations_message()
+            sys_utt = f"Found {len(recommendations)} matching restaurant(s).\n" + sys_utt
 
             if recommendations.empty:
                 print(sys_utt)
