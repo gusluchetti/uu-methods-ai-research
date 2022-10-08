@@ -13,8 +13,7 @@ import pandas as pd
 import numpy as np
 import pickle
 
-# local imports
-import bot
+import bot  # local imports
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
@@ -168,9 +167,9 @@ def main():
     """Prepares the dataset, model and runs the bot"""
     global label_dict, tfidf
     global logistic_regression, multinomial_nb
-    models_path = "models/"
-    source_data = "dialog_acts.dat"
-    df_file = "df.csv"
+    data_path = "datasets/"
+    source_data = data_path + "dialog_acts.dat"
+    df_file = data_path + "df.csv"
 
     if os.path.exists(df_file) and "reprocess" not in sys.argv:
         print("Found existing processed dataframe! Using it instead...")
@@ -190,6 +189,7 @@ def main():
     label_dict = build_label_dict(df)
     X_train, X_test, y_train, y_test = make_train_test_split(df)
 
+    models_path = "models/"
     if "remodel" not in sys.argv:
         if os.path.exists(models_path + "lr.sav"):
             logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
@@ -218,7 +218,7 @@ def main():
 
 global majority_class, keyword_dict
 majority_class = "inform"
-# TODO: should we remove null completely?
+# TODO: what should we do will 'null' values?
 keyword_dict = {
     "inform": r"\blooking\b|\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
     "confirm": r"\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
