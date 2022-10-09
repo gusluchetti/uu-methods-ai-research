@@ -8,7 +8,7 @@ The user is prompted initially with a multi-select of the available configuratio
 This project uses [pyenv](https://github.com/pyenv/pyenv) in conjunction with [poetry](https://python-poetry.org/) for better package management. 
 Assuming both are **properly installed** and you're **inside the directory** where the repository has been cloned, run `poetry install` and `poetry shell` to install all dependencies and setup a local virtualenv with said packages, respectively. `poetry run main.py` will run the main file inside the virtualenv. Having said that, poetry's and pyenv's usage is not stricly necessary, if you have a python environment with all packages already installed, feel free to just run `python main.py <args>`
 
-## Files:
+## Files
 - `main.py` - The file you're actually supposed to run. Contains the logic for building the models and starting the bot up.
 - `bot.py` - Contains most of the bot logic and the dialog state system.
  - `restaurant.py` - Contains dataset and functions that get and set restaurant recommendations based on user preferences.
@@ -20,7 +20,7 @@ These are the supported arguments when running `main.py` (i.e. `poetry run pytho
 2. `remodel` -- forces the remodelling of the current models selected.
 3. `debug` -- runs the whole program in debug mode, this enables LOTS of extra prints, so don't use this unless you actually plan on debugging something.
 
-## Example Dialog Snippets:
+## Example Dialog Snippets
 ### Example 1
 ```
 system: Hello! What kind of restaurant are you looking for?
