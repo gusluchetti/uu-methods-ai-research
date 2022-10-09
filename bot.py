@@ -33,26 +33,26 @@ def create_settings_dict():
             "description": "Enable being able to restart the dialogue at any moment",
             "is_enabled": False
         },
-        # {
-        #     "key": "delayed",
-        #     "description": "Introduce a delay before showing system responses",
-        #     "is_enabled": False
-        # },
-        # {
-        #     "key": "thorough",
-        #     "description": "Enable confirmation for each preference",
-        #     "is_enabled": False
-        # },
-        # {
-        #     "key": "loud",
-        #     "description": "OUTPUT IN ALL CAPS!!",
-        #     "is_enabled": False
-        # },
-        # {
-        #     "key": "voice_assistant",
-        #     "description": "Enable text-to-speech for system utterances",
-        #     "is_enabled": False
-        # }
+        {
+             "key": "delayed",
+             "description": "Introduce a delay before showing system responses",
+             "is_enabled": False
+        },
+        {
+             "key": "thorough",
+             "description": "Enable confirmation for each preference",
+             "is_enabled": False
+        },
+        {
+             "key": "loud",
+             "description": "OUTPUT IN ALL CAPS!!",
+             "is_enabled": False
+        },
+        {
+             "key": "voice_assistant",
+             "description": "Enable text-to-speech for system utterances",
+             "is_enabled": False
+        }
     ]
     return settings_dict
 
