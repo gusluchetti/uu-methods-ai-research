@@ -259,14 +259,11 @@ Please select a classification method (first two are baseline systems):
                 set_form(mode_split[1], field)
 
         if mode == "confirm":
-            extra_pref = get_form("extra_preference")
             area = get_form("area")
             food = get_form("food")
             pricerange = get_form("pricerange")
 
             start = "You want to eat in a restaurant"
-            if extra_pref:
-                start = "You want to eat in a "+f"{extra_pref} "+"restaurant"
             end = ", did I get that right?\n"
             extras = ""
 
