@@ -238,12 +238,6 @@ def extract_extra_preference(user_utt):
         extra_preference, misspelled_extra_pref = best_match_list(
             user_utt, extra_pref_list
         )
-        if (
-            user_utt.index(misspelled_extra_pref) == location_index
-            or user_utt.index(misspelled_extra_pref) == pricerange_index
-            or user_utt.index(misspelled_extra_pref) == type_index
-        ):
-            extra_preference = "unknown"
 
     form["extra_preference"] = extra_preference
     return extra_preference
