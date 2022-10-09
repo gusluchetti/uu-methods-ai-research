@@ -13,21 +13,21 @@ def create_settings_dict():
     # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
     # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
     settings_dict = [
-        {
-            "key": "confirm_leven",
-            "description": "Enable confirmation of correctness for Levenshtein distance matches",
-            "is_enabled": False
-        },
-        {
-            "key": "random_order",
-            "description": "Enable preferences to be stated in random order",
-            "is_enabled": False
-        },
-        {
-            "key": "stupid_bot",
-            "description": "Insert artificial errors in preference extraction",
-            "is_enabled": False
-        },
+        # {
+        #     "key": "confirm_leven",
+        #     "description": "Enable confirmation of correctness for Levenshtein distance matches",
+        #     "is_enabled": False
+        # },
+        # {
+        #     "key": "random_order",
+        #     "description": "Enable preferences to be stated in random order",
+        #     "is_enabled": False
+        # },
+        # {
+        #     "key": "stupid_bot",
+        #     "description": "Insert artificial errors in preference extraction",
+        #     "is_enabled": False
+        # },
         {
             "key": "enable_restart",
             "description": "Enable being able to restart the dialogue at any moment",
