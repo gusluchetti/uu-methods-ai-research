@@ -27,10 +27,6 @@ else:
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 log = logging.getLogger(__name__)
-# main should be responsible for setting up the dataset, doing preprocessing
-# and training the models that will be used
-# those models are then passed onto the bot that is called at the very end
-# of the file, with these aformentioned baseline systems + models
 
 
 def get_dataset(path):
@@ -168,6 +164,9 @@ def main():
     """Prepares the dataset, model and runs the bot"""
     global label_dict, tfidf
     global logistic_regression, multinomial_nb
+    logistic_regression = None
+    multinomial_nb = None
+
     data_path = "datasets/"
     source_data = data_path + "dialog_acts.dat"
     df_file = data_path + "df.csv"
@@ -191,19 +190,19 @@ def main():
     X_train, X_test, y_train, y_test = make_train_test_split(df)
 
     models_path = "models/"
-    if "remodel" not in sys.argv:
-        if os.path.exists(models_path + "lr.sav"):
-            logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
-        if os.path.exists(models_path + "mnb.sav"):
-            multinomial_nb = pickle.load(open(models_path + "mnb.sav", "rb"))
+    if "remodel" not in sys.argv and os.path.exists(models_path + "lr.sav"):
+        logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
     else:
-        print("Building models from scratch! This might take a while.")
         logistic_regression = train_logistic_regression_model(X_train, y_train)
+
+    if "remodel" not in sys.argv and os.path.exists(models_path + "mnb.sav"):
+        multinomial_nb = pickle.load(open(models_path + "mnb.sav", "rb"))
+    else:
         multinomial_nb = train_NB_classifier_model(X_train, y_train)
 
-        print("Models have been fit! Saving them for future use... \n")
-        pickle.dump(logistic_regression, open(models_path + "lr.sav", "wb"))
-        pickle.dump(multinomial_nb, open(models_path + "mnb.sav", "wb"))
+    print("Models have been fit! Saving them for future use... \n")
+    pickle.dump(logistic_regression, open(models_path + "lr.sav", "wb"))
+    pickle.dump(multinomial_nb, open(models_path + "mnb.sav", "wb"))
 
     # the following functions have a single string as their argument
     # and return a label as a classification prediction
