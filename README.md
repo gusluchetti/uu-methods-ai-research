@@ -12,7 +12,8 @@ Assuming both are **properly installed** and you're **inside the directory** whe
 3. `debug` -- runs the whole program in debug mode, this enables LOTS of extra prints, so don't use this unless you actually plan on debugging something.
 
 ## Example Dialog Snippets:
-###Example 1
+### Example 1
+```
 system: Hello! What kind of restaurant are you looking for?
 user: I am looking for cheap italian food in the south. [you can specify any number of preferences]
 s: Do you have any extra preferences?
@@ -22,8 +23,10 @@ u: no
 s: Hello! What kind of restaurant are you looking for? [back to the beginning]
 u: bye
 s: Goodbye! Thanks for using our bot!
+```
 
 ### Example 2
+```
 s: Hello! What kind of restaurant are you looking for?
 u: I am looking for cheap italian food.
 s: Where would you like to eat?
@@ -37,8 +40,10 @@ u: no
 s: Found 0 matching restaurant(s).
 s: Sorry, there are no restaurants that conforms to your requirements.
 s: Goodbye! Thanks for using our bot!
+```
 
 ### Example 3
+```
 s: Hello! What kind of restaurant are you looking for?
 u: chinese
 s: Where would you like to eat?
@@ -60,8 +65,10 @@ u: no
 s: Found 0 matching restaurant(s).
 s: Sorry, there are no restaurants that conforms to your requirements.
 s: Goodbye! Thanks for using our bot!
+```
 
 #### Example 4
+```
 s: Hello! What kind of restaurant are you looking for?
 u: Looking for an Italian restaurant.
 s: Where would you like to eat?
@@ -77,3 +84,4 @@ s: [suggestion1]
 s: Is that ok?
 u: yes
 s: Goodbye! Thanks for using our bot!
+```
