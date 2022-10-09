@@ -264,13 +264,12 @@ Please select a classification method (first two are baseline systems):
             food = get_form("food")
             pricerange = get_form("pricerange")
 
-            if extra_pref != "any" or "":
-                start = f"You want to eat in a {extra_pref} restaurant"
-            else:
-                start = "You want to eat in a restaurant"
-
+            start = "You want to eat in a restaurant"
+            if extra_pref:
+                start = "You want to eat in a "+f"{extra_pref} "+"restaurant"
             end = ", did I get that right?\n"
             extras = ""
+
             if food != "any" or "":
                 extras += f" that has {food} cuisine"
             if area != "any" or "":
