@@ -13,21 +13,21 @@ def create_settings_dict():
     # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
     # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
     settings_dict = [
-        {
-            "key": "confirm_leven",
-            "description": "Enable confirmation of correctness for Levenshtein distance matches",
-            "is_enabled": False
-        },
-        {
-            "key": "random_order",
-            "description": "Enable preferences to be stated in random order",
-            "is_enabled": False
-        },
-        {
-            "key": "stupid_bot",
-            "description": "Insert artificial errors in preference extraction",
-            "is_enabled": False
-        },
+        # {
+        #     "key": "confirm_leven",
+        #     "description": "Enable confirmation of correctness for Levenshtein distance matches",
+        #     "is_enabled": False
+        # },
+        # {
+        #     "key": "random_order",
+        #     "description": "Enable preferences to be stated in random order",
+        #     "is_enabled": False
+        # },
+        # {
+        #     "key": "stupid_bot",
+        #     "description": "Insert artificial errors in preference extraction",
+        #     "is_enabled": False
+        # },
         {
             "key": "enable_restart",
             "description": "Enable being able to restart the dialogue at any moment",
@@ -113,7 +113,7 @@ dialog_tree = {
     },
     "confirm_choice": {
         "mode": "confirm",
-        "sys_utt": "I understood that you'd like to have {}, {} food in the {} part of town, did I get that right?\n",
+        "sys_utt": "",
         "exits": ["welcome", "suggest_restaurant"],
         "exit_conditions": ["label in ['negate','deny']", "True"],
     },
@@ -259,7 +259,28 @@ Please select a classification method (first two are baseline systems):
                 set_form(mode_split[1], field)
 
         if mode == "confirm":
-            user_utt = input(sys_utt.format(get_form("pricerange"), get_form("food"), get_form("area")))
+            area = get_form("area")
+            food = get_form("food")
+            pricerange = get_form("pricerange")
+
+            start = "You want to eat in a restaurant"
+            end = ", did I get that right?\n"
+            extras = ""
+
+            if food != "any" or "":
+                extras += f" that has {food} cuisine"
+            if area != "any" or "":
+                extras += f" somewhere around the {area}"
+            if pricerange != "any" or "":
+                extras += f" in the {pricerange} price range"
+
+            none = "All right! A surprise it is. Is that ok?\n"
+            if food == "any" and area == "any" and pricerange == "any":
+                sys_utt = none
+            else:
+                sys_utt = f"{start}{extras}{end}"
+
+            user_utt = input(sys_utt)
             label = classifier(user_utt)
             log.debug(f"classified utterance as {label}")
             restaurant.set_recommendations(form)

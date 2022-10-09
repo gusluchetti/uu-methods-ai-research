@@ -27,13 +27,14 @@ restaurants.insert(1, "length_of_stay", random_length_of_stay, True)
 
 
 def set_recommendations(form):
-    global restaurants, recommendations
+    global restaurants, recommendations, extra_preference
     inference_rules = {
         "touristic": "pricerange in ('cheap') & food_quality in ('good') & food not in ('romanian')",
         "assigned seats": "crowdedness in ('busy')",
         "children": "length_of_stay not in ('long')",
         "romantic": "crowdedness not in ('busy') & length_of_stay in ('long')",
     }
+    extra_preference = form["extra_preference"]
     log.debug(f"Current preferences: {form}")
 
     filter = tuple()
@@ -122,11 +123,9 @@ def recommendation_message(index):
         else:
             response = f"{def_msg}{postcode}. {phone}."
 
-        if extra_preference != "":
-            extra_msg = get_extra_preference_msg()
-            response = f"{response} {extra_msg}"
-
-        return (index, response + "\nIs that ok?")
+        extra_msg = get_extra_preference_msg()
+        response = f"{response} {extra_msg}"
+        return (index, response + "\nIs that ok?\n")
 
     return (
         index,
