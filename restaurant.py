@@ -126,7 +126,7 @@ def recommendation_message(index):
             extra_msg = get_extra_preference_msg()
             response = f"{response} {extra_msg}"
 
-        return (index, response + "\nIs that ok?")
+        return (index, response + "\nIs that ok?\n")
 
     return (
         index,
