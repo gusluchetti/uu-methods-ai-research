@@ -30,7 +30,7 @@ def create_settings_dict():
         },
         {
             "key": "enable_restart",
-            "description": "Enable being able to restart the dialog at any moment",
+            "description": "Enable being able to restart the dialogue at any moment",
             "is_enabled": False
         },
         {
