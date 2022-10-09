@@ -265,11 +265,10 @@ Please select a classification method (first two are baseline systems):
             pricerange = get_form("pricerange")
 
             if extra_pref != "any" or "":
-                extra_pref = f" {extra_pref}"
+                start = f"You want to eat in a {extra_pref} restaurant"
             else:
-                extra_pref = ""
+                start = "You want to eat in a restaurant"
 
-            start = f"You want to eat in a{extra_pref} restaurant"
             end = ", did I get that right?\n"
             extras = ""
             if food != "any" or "":
