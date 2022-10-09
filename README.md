@@ -15,7 +15,7 @@ Assuming both are **properly installed** and you're **inside the directory** whe
 - `type_match_ls.py` - Contains logic for finding and setting all extra preferences, and returns that information to the bot.
 
 ## Arguments
-- Three arguments are supported when running `main.py` (i.e. `poetry run python main.py remodel`): 
+These are the supported arguments when running `main.py` (i.e. `poetry run python main.py remodel`): 
 1. `reprocess` -- forces the program to rebuild and reprocess the dataframe from the original dataset (dialog_acts.dat)
 2. `remodel` -- forces the remodelling of the current models selected.
 3. `debug` -- runs the whole program in debug mode, this enables LOTS of extra prints, so don't use this unless you actually plan on debugging something.
