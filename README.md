@@ -1,9 +1,18 @@
 # uu-methods-ai-research
 This repo contains the assignments made for the Methods in A.I. Research Course, Utrecht University, 1st Period.
 
+## Usage
+The user is prompted initially with a multi-select of the available configuration options. Choose between them with the arrow keys, toggle an option with SPACEBAR and finalize seletion with ENTER. After that the user has to select one of the 4 available dialog classifiers (1-4). Default is keyword matching. The bot is then available to chat with.
+
 ## Build Dependencies
 - This project uses [pyenv](https://github.com/pyenv/pyenv) in conjunction with [poetry](https://python-poetry.org/) for better package management. 
 Assuming both are **properly installed** and you're **inside the directory** where the repository has been cloned, run `poetry install` and `poetry shell` to install all dependencies and setup a local virtualenv with said packages, respectively. `poetry run main.py` will run the main file inside the virtualenv. Having said that, poetry's and pyenv's usage is not stricly necessary, if you have a python environment with all packages already installed, feel free to just run `python main.py <args>`
+
+## Files:
+`main.py` - The file you're actually supposed to run. Contains the logic for building the models and starting the bot up.
+`bot.py` - Contains most of the bot logic and the dialog state system.
+`restaurant.py` - Contains dataset and functions that get and set restaurant recommendations based on user preferences.
+`type_match_ls.py` - Contains logic for finding and setting all extra preferences, and returns that information to the bot.
 
 ## Arguments
 - Three arguments are supported when running `main.py` (i.e. `poetry run python main.py remodel`): 
