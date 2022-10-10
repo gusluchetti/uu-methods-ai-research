@@ -88,11 +88,13 @@ def create_dialog_tree():
 
 
 def create_settings_dict():
-    # TODO: validate all these settings (implement hardest)
+    # TODO: validate all these settings (try and implement the hardest!)
     # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
     # confirm_leven - enable confirmation of correctness for levenshtein distance matches, what does that mean?
     # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
     # stupid_bot - insert artificial errors in preference extraction
+    # thorough - confirm every preference, how to do that? if any preference is detected
+    # on an utterance, confirm it? new node required?
     return {
         "enable_restart": {
             "description": "Enable being able to restart the dialogue at any moment",
@@ -104,10 +106,6 @@ def create_settings_dict():
         },
         "delayed": {
              "description": "Introduce a delay before showing system responses",
-             "is_enabled": False
-        },
-        "thorough": {
-             "description": "Enable confirmation for each preference",
              "is_enabled": False
         },
         "voice_assistant": {
