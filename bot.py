@@ -13,21 +13,25 @@ def reset_form():
     form = {field: "" for field in form}
 
 
-# FIXME: all settings here? or just model related settings?
+# any setting that is related to the dialog transition system
+# goes here
 def enable_settings(settings_dict, selected):
     global dialog_tree
     log.debug(f"Selected options: {selected}")
     # getting option key based on index
     for s in selected:
         setting = list(settings_dict)[s[1]]
-        if setting == "enable_restart":
-            for value in dialog_tree.values():
-                if value["mode"] != "test":
-                    value["exits"].insert(0, "welcome")
-                    value["exit_conditions"].insert(0, '"restart" in user_utt')
-        if setting == "loud":
-            # TODO: upper all sys utts
-            print('loud')
+        for k, v in dialog_tree.items():
+            if setting == "enable_restart" and v["mode"] != "test":
+                v["exits"].insert(0, "welcome")
+                v["exit_conditions"].insert(0, '"restart" in user_utt')
+            if setting == "loud":
+                v["sys_utt"] = v["sys_utt"].upper()
+
+
+# called whenever user response is necessary
+def get_user_input() -> str:
+    return "test"
 
 
 # global variables
@@ -56,7 +60,6 @@ def start(list_models):
         sys_utt = dialog_tree[current_node]["sys_utt"]
         exits = dialog_tree[current_node]["exits"]
         conditions = dialog_tree[current_node]["exit_conditions"]
-
         log.debug(f"\nCurrent Node: {current_node}\nMode: {mode}")
         log.debug(f"\nExits: {exits}\nConditions: {conditions}\nForm: {form}")
 
