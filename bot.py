@@ -24,6 +24,7 @@ def enable_settings(s_dict, selected):
     # any setting that modifies aspects of the state system
     for k, v in dialog_tree.items():
         if s_dict["loud"]["is_enabled"]:
+            # FIXME: this doesnt consider recommendations msgs
             v["sys_utt"] = v["sys_utt"].upper()
         if s_dict["enable_restart"]["is_enabled"] and v["mode"] != "test":
             v["exits"].insert(0, "welcome")
