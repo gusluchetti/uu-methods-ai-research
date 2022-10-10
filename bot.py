@@ -9,52 +9,56 @@ log = logging.getLogger(__name__)
 
 
 def create_settings_dict():
-    # TODO:
+    # TODO: validate all these settings (implement hardest)
     # leven_edit - edit levenshtein distance for preference extraction, should be a different menu maybe?
+    # confirm_leven - enable confirmation of correctness for levenshtein distance matches, what does that mean?
     # fancy_bot - does fancy bot mean the bot accepts fancy phrases from the user? or that the bot is fancier?
-    settings_dict = [
-        # {
-        #     "key": "confirm_leven",
-        #     "description": "Enable confirmation of correctness for Levenshtein distance matches",
-        #     "is_enabled": False
-        # },
-        # {
-        #     "key": "random_order",
-        #     "description": "Enable preferences to be stated in random order",
-        #     "is_enabled": False
-        # },
-        # {
-        #     "key": "stupid_bot",
-        #     "description": "Insert artificial errors in preference extraction",
-        #     "is_enabled": False
-        # },
-        {
-            "key": "enable_restart",
+    # stupid_bot - insert artificial errors in preference extraction
+    return {
+        "enable_restart": {
             "description": "Enable being able to restart the dialogue at any moment",
             "is_enabled": False
         },
-        {
-             "key": "delayed",
+        "delayed": {
              "description": "Introduce a delay before showing system responses",
              "is_enabled": False
         },
-        {
-             "key": "thorough",
+        "thorough": {
              "description": "Enable confirmation for each preference",
              "is_enabled": False
         },
-        {
-             "key": "loud",
+        "loud": {
              "description": "OUTPUT IN ALL CAPS!!",
              "is_enabled": False
         },
-        {
-             "key": "voice_assistant",
+        "voice_assistant": {
              "description": "Enable text-to-speech for system utterances",
              "is_enabled": False
         }
-    ]
-    return settings_dict
+    }
+
+
+# combining sklearn models with our own baseline systems
+# enable user to select any when starting
+def create_models_dict(models):
+    return {
+        "keyword_match": {
+            "description": "Matches keyword in utterances to classify dialogue",
+            "function": models["1"]
+        },
+        "majority_class": {
+            "description": "Label is always majority class of dataset",
+            "function": models["2"]
+        },
+        "logistic_regression": {
+            "description": "Classifies utterance according to fit Logistic Regression model",
+            "function": models["3"]
+        },
+        "multinomial_nb": {
+            "description": "Classifies utterance accornding to fit Multinomial Naive-Bayes model",
+            "function": models["4"]
+        },
+    }
 
 
 # TODO: add optional sys_dialog for failing conditions
@@ -152,11 +156,6 @@ def reset_form():
     form = {field: "" for field in form}
 
 
-# starting states
-current_node = "welcome"
-form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
-
-
 def extract_food(utt):
     return type_match_ls.extract_food(utt)
 
@@ -178,18 +177,6 @@ def set_current_node(new_node):
     current_node = new_node
 
 
-def show_settings_menu(settings_dict):
-    s_list = []
-    for s in settings_dict:
-        key, desc = s["key"], s["description"]
-        s_list.append(f"{key} - {desc}")
-
-    title = "Configure your desired settings: "
-    options = s_list
-    selected = pick(options, title, multiselect=True, min_selection_count=0)
-    return (selected)  # list of tuples
-
-
 def enable_settings(settings_dict, selected):
     log.debug(f"Selected options: {selected}")
     for s in selected:
@@ -200,34 +187,62 @@ def enable_settings(settings_dict, selected):
                     value["exits"].insert(0, "welcome")
                     value["exit_conditions"].insert(0, '"restart" in user_utt')
         if setting == "loud":
-            # upper all sys utts
+            # TODO: upper all sys utts
             print('loud')
 
 
-# passing functions that return predictions for the bot to use
-def start(list_models):
+def enable_method(models_dict, selected):
     global classifier
 
-    print("Starting bot...")
+    log.debug(f"Selected model: {selected}")
+    classifier = models_dict["2"]
+
+
+def show_options_menu(options, title, is_multi_select=False, min_multi=0):
+    s_list = []
+    for k, v in options.items():
+        desc = v["description"]
+        s_list.append(f"{k} - {desc}")
+
+    # return is list of tuples
+    return (pick(
+        options=s_list,
+        title=title,
+        multiselect=is_multi_select,
+        min_selection_count=min_multi
+    ))
+
+
+# starting states
+current_node = "welcome"
+form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
+
+
+# passing functions that return predictions for the bot to use
+def start(models_dict):
+    global classifier
 
     settings_dict = create_settings_dict()
-    selected = show_settings_menu(settings_dict)
-    enable_settings(settings_dict, selected)
+    selected_settings = show_options_menu(settings_dict, "Configure your desired settings", True)
+    enable_settings(settings_dict, selected_settings)
 
-    classifier_key = input(
-        """
-Please select a classification method (first two are baseline systems):
-[1] - Majority Class
-[2 (Default)] Keyword Matching
-[3] - Logistic Regression
-[4] - Multinomial Naive-Bayes\n"""
-    )
-    classifier = list_models["2"]
-    if classifier_key in list_models.keys():
-        classifier = list_models[classifier_key]
-        print(f"Using model {classifier_key}")
-    else:
-        print("Using default model (keyword matching)")
+    selected_method = show_options_menu(models_dict, "Select your classification model")
+    enable_method(models_dict, selected_method)
+
+#     classifier_key = input(
+#         """
+# Please select a classification method (first two are baseline systems):
+# [1] - Majority Class
+# [2 (Default)] Keyword Matching
+# [3] - Logistic Regression
+# [4] - Multinomial Naive-Bayes\n"""
+#     )
+#     classifier = list_models["2"]
+#     if classifier_key in list_models.keys():
+#         classifier = list_models[classifier_key]
+#         print(f"Using model {classifier_key}")
+#     else:
+#         print("Using default model (keyword matching)")
 
     global current_node
     while current_node != "goodbye":
