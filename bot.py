@@ -34,7 +34,7 @@ def enable_settings(settings_dict, selected):
 dialog_tree = None
 classifier = None
 current_node = "welcome"
-form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
+form = {"food": "", "pricerange": "", "area": "", "extra_preference": ""}
 
 
 def start(list_models):
@@ -73,7 +73,7 @@ def start(list_models):
                 form["pricerange"] = ls.extract_pricerange(user_utt)
                 form["extra_preference"] = ls.extract_extra_preference(user_utt)
             elif "extract" in mode:
-                field = eval(f"extract_{mode_split[1]}(user_utt)")
+                field = eval(f"ls.extract_{mode_split[1]}(user_utt)")
                 form[mode_split[1]] = field
 
         if mode == "confirm":
@@ -103,8 +103,10 @@ def start(list_models):
 
         # evaluate exit conditions
         for i, condition in enumerate(conditions):
-            log.debug(f"condition {i}: {condition} is {eval(condition)}")
-            if eval(condition):
+            evaluation = eval(condition)
+            log.debug(f"condition {i}: {condition} is {evaluation}")
+
+            if evaluation:
                 next_node = exits[i]
                 break
 
