@@ -103,7 +103,7 @@ def start(list_models):
 
         # evaluate exit conditions
         for i, condition in enumerate(conditions):
-            log.debug(f"condition {i}: {condition} is evaluated as {eval(condition)}")
+            log.debug(f"condition {i}: {condition} is {eval(condition)}")
             if eval(condition):
                 next_node = exits[i]
                 break
