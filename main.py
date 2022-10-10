@@ -206,19 +206,18 @@ def main():
 
     # the following functions have a single string as their argument
     # and return a label as a classification prediction
-    list_models = {
-        "1": get_majority_class,
-        "2": single_keyword_matching,
-        "3": predict_lr,
-        "4": predict_mnb,
-    }
-
+    list_models = [
+        get_majority_class,
+        single_keyword_matching,
+        predict_lr,
+        predict_mnb,
+    ]
     bot.start(list_models)
 
 
 global majority_class, keyword_dict
 majority_class = "inform"
-# TODO: what should we do will 'null' values?
+# FIXME: what should we do will 'null' values?
 keyword_dict = {
     "inform": r"\blooking\b|\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
     "confirm": r"\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
