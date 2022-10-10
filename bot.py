@@ -77,11 +77,7 @@ def start(list_models):
                 form[mode_split[1]] = field
 
         if mode == "confirm":
-            area = form["area"]
-            food = form["food"]
-            pricerange = form["pricerange"]
-
-            sys_utt = lib.get_confirmation_msg(area, food, pricerange)
+            sys_utt = lib.get_confirmation_msg(form)
             user_utt = input(sys_utt)
             label = classifier(user_utt)
             log.debug(f"classified utterance as {label}")
