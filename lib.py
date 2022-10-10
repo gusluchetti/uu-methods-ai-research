@@ -150,7 +150,6 @@ def show_options_menu(options, title, is_multi_select=False, min_multi=0):
     log.debug(options)
     s_list = []
     for k, v in options.items():
-        print(k, v)
         desc = v["description"]
         s_list.append(f"{k} - {desc}")
 
