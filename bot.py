@@ -179,8 +179,9 @@ def set_current_node(new_node):
 
 def enable_settings(settings_dict, selected):
     log.debug(f"Selected options: {selected}")
+    # getting option key based on index
     for s in selected:
-        setting = settings_dict[s[1]]["key"]
+        setting = list(settings_dict)[s[1]]
         if setting == "enable_restart":
             for value in dialog_tree.values():
                 if value["mode"] != "test":
@@ -193,14 +194,16 @@ def enable_settings(settings_dict, selected):
 
 def enable_method(models_dict, selected):
     global classifier
-
-    log.debug(f"Selected model: {selected}")
-    classifier = models_dict["2"]
+    key = list(models_dict)[selected[1]]
+    classifier = models_dict[key]["function"]
+    log.info(f"You've selected model {key}")
 
 
 def show_options_menu(options, title, is_multi_select=False, min_multi=0):
+    log.debug(options)
     s_list = []
     for k, v in options.items():
+        print(k, v)
         desc = v["description"]
         s_list.append(f"{k} - {desc}")
 
@@ -219,32 +222,18 @@ form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
 
 
 # passing functions that return predictions for the bot to use
-def start(models_dict):
-    global classifier
+def start(list_models):
+    global classifier, current_node
 
+    # showing configurability menu
     settings_dict = create_settings_dict()
     selected_settings = show_options_menu(settings_dict, "Configure your desired settings", True)
     enable_settings(settings_dict, selected_settings)
-
+    # showing model selection menu
+    models_dict = create_models_dict(list_models)
     selected_method = show_options_menu(models_dict, "Select your classification model")
     enable_method(models_dict, selected_method)
 
-#     classifier_key = input(
-#         """
-# Please select a classification method (first two are baseline systems):
-# [1] - Majority Class
-# [2 (Default)] Keyword Matching
-# [3] - Logistic Regression
-# [4] - Multinomial Naive-Bayes\n"""
-#     )
-#     classifier = list_models["2"]
-#     if classifier_key in list_models.keys():
-#         classifier = list_models[classifier_key]
-#         print(f"Using model {classifier_key}")
-#     else:
-#         print("Using default model (keyword matching)")
-
-    global current_node
     while current_node != "goodbye":
         mode = dialog_tree[current_node]["mode"]
         sys_utt = dialog_tree[current_node]["sys_utt"]
