@@ -163,3 +163,23 @@ def show_options_menu(options, title, is_multi_select=False, min_multi=0):
         multiselect=is_multi_select,
         min_selection_count=min_multi
     ))
+
+
+def get_confirmation_msg(food, area, pricerange) -> str:
+    start = "You want to eat in a restaurant"
+    end = ", did I get that right?\n"
+    extras = ""
+
+    if food != "any" or "":
+        extras += f" that has {food} cuisine"
+    if area != "any" or "":
+        extras += f" somewhere around the {area}"
+    if pricerange != "any" or "":
+        extras += f" in the {pricerange} price range"
+
+    if food == "any" and area == "any" and pricerange == "any":
+        sys_utt = "All right! A surprise it is. Is that ok?\n"
+    else:
+        sys_utt = f"{start}{extras}{end}"
+
+    return sys_utt
