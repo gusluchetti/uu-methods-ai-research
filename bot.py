@@ -14,23 +14,22 @@ def reset_form():
     form = {field: "" for field in form}
 
 
-# any setting that is related to the dialog transition system
-# goes here
-def enable_settings(settings_dict, selected):
+def enable_settings(s_dict, selected):
     global dialog_tree
     log.debug(f"Selected options: {selected}")
-    # getting option key based on index
     for s in selected:
-        setting = list(settings_dict)[s[1]]
-        for k, v in dialog_tree.items():
-            settings_dict[setting]["is_enabled"] = True
-            if setting == "enable_restart" and v["mode"] != "test":
-                v["exits"].insert(0, "welcome")
-                v["exit_conditions"].insert(0, '"restart" in user_utt')
-            if setting == "loud":
-                v["sys_utt"] = v["sys_utt"].upper()
+        setting = list(s_dict)[s[1]]
+        s_dict[setting]["is_enabled"] = True
 
-    return settings_dict
+    # any setting that modifies aspects of the state system
+    for k, v in dialog_tree.items():
+        if s_dict["loud"]["is_enabled"]:
+            v["sys_utt"] = v["sys_utt"].upper()
+        if s_dict["enable_restart"]["is_enabled"] and v["mode"] != "test":
+            v["exits"].insert(0, "welcome")
+            v["exit_conditions"].insert(0, '"restart" in user_utt')
+
+    return s_dict
 
 
 # called whenever user response is necessary
