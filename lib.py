@@ -121,30 +121,31 @@ def create_settings_dict():
 # enable user to select any when starting
 def create_models_dict(models):
     return {
-        "keyword_match": {
-            "description": "Matches keyword in utterances to classify dialogue",
-            "function": models["1"]
-        },
         "majority_class": {
             "description": "Label is always majority class of dataset",
-            "function": models["2"]
+            "function": models[0]
+        },
+        "keyword_match": {
+            "description": "Matches keyword in utterances to classify dialogue",
+            "function": models[1]
         },
         "logistic_regression": {
             "description": "Classifies utterance according to fit Logistic Regression model",
-            "function": models["3"]
+            "function": models[2]
         },
         "multinomial_nb": {
             "description": "Classifies utterance accornding to fit Multinomial Naive-Bayes model",
-            "function": models["4"]
-        },
+            "function": models[3]
+        }
     }
 
 
 def enable_method(models_dict, selected):
     global classifier
     key = list(models_dict)[selected[1]]
-    classifier = models_dict[key]["function"]
     log.info(f"You've selected model {key}")
+
+    return models_dict[key]["function"]
 
 
 def show_options_menu(options, title, is_multi_select=False, min_multi=0):
