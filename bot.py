@@ -57,14 +57,15 @@ def enable_settings(settings_dict, selected):
             print('loud')
 
 
-# starting states
+# global variables
 dialog_tree = None
+classifier = None
 current_node = "welcome"
 form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
 
 
 def start(list_models):
-    global dialog_tree, current_node, classifier
+    global classifier, dialog_tree, current_node, classifier
     dialog_tree = lib.create_dialog_tree()
 
     # showing configurability menu
@@ -74,7 +75,8 @@ def start(list_models):
     # showing model selection menu
     models_dict = lib.create_models_dict(list_models)
     selected_method = lib.show_options_menu(models_dict, "Select your classification model")
-    lib.enable_method(models_dict, selected_method)
+    classifier = lib.enable_method(models_dict, selected_method)
+    log.debug(classifier)
 
     while current_node != "goodbye":
         mode = dialog_tree[current_node]["mode"]
@@ -83,8 +85,8 @@ def start(list_models):
         conditions = dialog_tree[current_node]["exit_conditions"]
 
         global form
-        log.debug(f"\nCurrent Node: {current_node}\nMode: {mode}\n")
-        log.debug(f"Exits: {exits}\nConditions: {conditions}\nForm: {form}")
+        log.debug(f"\nCurrent Node: {current_node}\nMode: {mode}")
+        log.debug(f"\nExits: {exits}\nConditions: {conditions}\nForm: {form}")
 
         mode_split = mode.split("_", maxsplit=1)
         if mode_split[0] in ["ask", "extract", "welcome"]:
