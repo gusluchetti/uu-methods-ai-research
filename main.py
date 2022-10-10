@@ -237,9 +237,8 @@ keyword_dict = {
 }
 
 if __name__ == "__main__":
-    # FIX: weird fix for num expr complaining about unset thread number
+    # HACK: weird fix for num expr complaining about unset thread number
     threads = multiprocessing.cpu_count()
     log.debug(f"n threads: {threads}")
     os.putenv("NUMEXPR_NUM_THREADS", f"{threads}")
-
     main()
