@@ -1,43 +1,16 @@
 import logging
 
 # local imports
-import type_match_ls
+import type_match_ls as ls
 import restaurant
 import lib
 
 log = logging.getLogger(__name__)
 
 
-# get, set and reset form state
-def get_form(field):
-    global form
-    return form[field]
-
-
-def set_form(field, input):
-    global form
-    form[field] = input
-
-
 def reset_form():
     global form
     form = {field: "" for field in form}
-
-
-def extract_food(utt):
-    return type_match_ls.extract_food(utt)
-
-
-def extract_area(utt):
-    return type_match_ls.extract_area(utt)
-
-
-def extract_pricerange(utt):
-    return type_match_ls.extract_pricerange(utt)
-
-
-def extract_extra_preference(utt):
-    return type_match_ls.extract_extra_preference(utt)
 
 
 # FIXME: all settings here? or just model related settings?
@@ -65,7 +38,7 @@ form = {"pricerange": "", "area": "", "food": "", "extra_preference": ""}
 
 
 def start(list_models):
-    global classifier, dialog_tree, current_node, classifier
+    global classifier, dialog_tree, current_node, classifier, form
     dialog_tree = lib.create_dialog_tree()
 
     # showing configurability menu
@@ -84,7 +57,6 @@ def start(list_models):
         exits = dialog_tree[current_node]["exits"]
         conditions = dialog_tree[current_node]["exit_conditions"]
 
-        global form
         log.debug(f"\nCurrent Node: {current_node}\nMode: {mode}")
         log.debug(f"\nExits: {exits}\nConditions: {conditions}\nForm: {form}")
 
@@ -96,35 +68,20 @@ def start(list_models):
 
             if mode == "welcome":
                 reset_form()
-                set_form("food", extract_food(user_utt))
-                set_form("area", extract_area(user_utt))
-                set_form("pricerange", extract_pricerange(user_utt))
-                set_form("extra_preference", extract_extra_preference(user_utt))
+                form["food"] = ls.extract_food(user_utt)
+                form["area"] = ls.extract_area(user_utt)
+                form["pricerange"] = ls.extract_pricerange(user_utt)
+                form["extra_preference"] = ls.extract_extra_preference(user_utt)
             elif "extract" in mode:
                 field = eval(f"extract_{mode_split[1]}(user_utt)")
-                set_form(mode_split[1], field)
+                form[mode_split[1]] = field
 
         if mode == "confirm":
-            area = get_form("area")
-            food = get_form("food")
-            pricerange = get_form("pricerange")
+            area = form["area"]
+            food = form["food"]
+            pricerange = form["pricerange"]
 
-            start = "You want to eat in a restaurant"
-            end = ", did I get that right?\n"
-            extras = ""
-
-            if food != "any" or "":
-                extras += f" that has {food} cuisine"
-            if area != "any" or "":
-                extras += f" somewhere around the {area}"
-            if pricerange != "any" or "":
-                extras += f" in the {pricerange} price range"
-
-            if food == "any" and area == "any" and pricerange == "any":
-                sys_utt = "All right! A surprise it is. Is that ok?\n"
-            else:
-                sys_utt = f"{start}{extras}{end}"
-
+            sys_utt = lib.get_confirmation_msg(area, food, pricerange)
             user_utt = input(sys_utt)
             label = classifier(user_utt)
             log.debug(f"classified utterance as {label}")
