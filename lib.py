@@ -98,16 +98,16 @@ def create_settings_dict():
             "description": "Enable being able to restart the dialogue at any moment",
             "is_enabled": False
         },
+        "loud": {
+             "description": "OUTPUT IN ALL CAPS!!",
+             "is_enabled": False
+        },
         "delayed": {
              "description": "Introduce a delay before showing system responses",
              "is_enabled": False
         },
         "thorough": {
              "description": "Enable confirmation for each preference",
-             "is_enabled": False
-        },
-        "loud": {
-             "description": "OUTPUT IN ALL CAPS!!",
              "is_enabled": False
         },
         "voice_assistant": {

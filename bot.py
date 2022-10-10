@@ -1,4 +1,5 @@
 import logging
+import time
 
 # local imports
 import type_match_ls as ls
@@ -22,11 +23,14 @@ def enable_settings(settings_dict, selected):
     for s in selected:
         setting = list(settings_dict)[s[1]]
         for k, v in dialog_tree.items():
+            settings_dict[setting]["is_enabled"] = True
             if setting == "enable_restart" and v["mode"] != "test":
                 v["exits"].insert(0, "welcome")
                 v["exit_conditions"].insert(0, '"restart" in user_utt')
             if setting == "loud":
                 v["sys_utt"] = v["sys_utt"].upper()
+
+    return settings_dict
 
 
 # called whenever user response is necessary
@@ -48,7 +52,7 @@ def start(list_models):
     # showing configurability menu
     settings_dict = lib.create_settings_dict()
     selected_settings = lib.show_options_menu(settings_dict, "Configure your desired settings", True)
-    enable_settings(settings_dict, selected_settings)
+    settings_dict = enable_settings(settings_dict, selected_settings)
     # showing model selection menu
     models_dict = lib.create_models_dict(list_models)
     selected_method = lib.show_options_menu(models_dict, "Select your classification model")
@@ -56,6 +60,10 @@ def start(list_models):
     log.debug(classifier)
 
     while current_node != "goodbye":
+        # FIXME: should only run right before user input is required
+        if settings_dict["delayed"]["is_enabled"] is True:
+            time.sleep(0.3)
+
         mode = dialog_tree[current_node]["mode"]
         sys_utt = dialog_tree[current_node]["sys_utt"]
         exits = dialog_tree[current_node]["exits"]
