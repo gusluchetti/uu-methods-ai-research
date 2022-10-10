@@ -177,6 +177,7 @@ def set_current_node(new_node):
     current_node = new_node
 
 
+# FIXME: all settings here? or just model related settings?
 def enable_settings(settings_dict, selected):
     log.debug(f"Selected options: {selected}")
     # getting option key based on index
@@ -241,12 +242,10 @@ def start(list_models):
         conditions = dialog_tree[current_node]["exit_conditions"]
 
         global form
-        """Traversing utterance to update form states"""
-        log.debug(
-            f"\nCurrent Node: {current_node}\nMode: {mode}\nExits: {exits}\nConditions: {conditions}\nForm: {form}"
-        )
+        log.debug(f"\nCurrent Node: {current_node}\nMode: {mode}\n")
+        log.debug(f"Exits: {exits}\nConditions: {conditions}\nForm: {form}")
 
-        mode_split = mode.split("_", 1)
+        mode_split = mode.split("_", maxsplit=1)
         if mode_split[0] in ["ask", "extract", "welcome"]:
             user_utt = input(sys_utt).lower()
             label = classifier(user_utt)
