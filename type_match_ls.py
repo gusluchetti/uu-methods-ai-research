@@ -84,9 +84,9 @@ def extract_area(user_utt):
             location = local
 
     # If no keyword was matched, look at positions in user_utt where you would
-    # expect to find a location. If no keyword relative to another category (type
-    # or pricerange) was found at that position, choose the word from that position
-    # which has the lowest Levenshtein edit distance from our keywords
+    # expect to find a location. If no keyword relative to another category
+    # (type or pricerange) was found at that position, choose the word from
+    # that position which has the lowest Levenshtein edit distance from our keywords
     if location == "":
         location_candidates = []
         for word in user_utt:
@@ -104,7 +104,6 @@ def extract_area(user_utt):
             location_index = user_utt.index(misspelled_location)
 
     log.debug(f"got {location} location")
-
     form["area"] = location
     return location
 
@@ -113,7 +112,6 @@ def extract_pricerange(user_utt):
     user_utt = pre_process(user_utt)
     global form, pricerange_index
     pricerange = ""
-    # find the index of the word on pricerange
     price_ranges = [
         "any",
         "cheap",
@@ -121,7 +119,6 @@ def extract_pricerange(user_utt):
         "expensive"
     ]
     pricerange_index = -1
-
     for price in price_ranges:
         if price in user_utt:
             pricerange_index = user_utt.index(price)
@@ -151,8 +148,8 @@ def extract_food(user_utt):
     user_utt = pre_process(user_utt)
     global form, type_index
     food_types = [
-        "african",
         "any",
+        "african",
         "asian oriental",
         "australasian",
         "bistro",
