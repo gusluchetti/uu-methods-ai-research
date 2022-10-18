@@ -43,7 +43,7 @@ def get_sys_utt(sys_utt, settings_dict):
 # returns label and user_utt
 def get_user_input(sys_utt, settings_dict):
     # NOTE: this also calls get_sys_utt based on settings
-    user_utt = input(get_sys_utt(sys_utt)).lower()
+    user_utt = input(get_sys_utt(sys_utt, settings_dict)).lower()
     if settings_dict["delayed"]["is_enabled"]:
         time.sleep(1.5)
     label = classifier(user_utt)
