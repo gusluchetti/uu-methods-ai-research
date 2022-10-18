@@ -1,5 +1,6 @@
 import logging
 import time
+import pyttsx3
 
 # local imports
 import type_match_ls as ls
@@ -7,6 +8,7 @@ import restaurant
 import lib
 
 log = logging.getLogger(__name__)
+engine = pyttsx3.init()
 
 
 def reset_form():
@@ -23,7 +25,6 @@ def enable_settings(s_dict, selected):
 
     # any setting that modifies aspects of the state system
     for k, v in dialog_tree.items():
-
         if s_dict["enable_restart"]["is_enabled"] and v["mode"] != "test":
             v["exits"].insert(0, "welcome")
             v["exit_conditions"].insert(0, '"restart" in user_utt')
@@ -33,8 +34,12 @@ def enable_settings(s_dict, selected):
 
 # modify sys_utt if any settings call for it
 def get_sys_utt(sys_utt, settings_dict):
+    sys_utt = sys_utt.lower()
     if settings_dict["loud"]["is_enabled"]:
         sys_utt = sys_utt.upper()
+    if settings_dict["voice_assistant"]["is_enabled"]:
+        engine.say(sys_utt)
+        engine.runAndWait()
 
     return sys_utt
 
@@ -43,7 +48,7 @@ def get_sys_utt(sys_utt, settings_dict):
 # returns label and user_utt
 def get_user_input(sys_utt, settings_dict):
     # NOTE: this also calls get_sys_utt based on settings
-    user_utt = input(get_sys_utt(sys_utt, settings_dict)).lower()
+    user_utt = input(get_sys_utt(sys_utt, settings_dict))
     if settings_dict["delayed"]["is_enabled"]:
         time.sleep(1.5)
     label = classifier(user_utt)
