@@ -31,7 +31,7 @@ def create_dialog_tree():
             "mode": "test",
             "sys_utt": "",
             "exits": ["ask_area", "test_pricerange"],
-            "exit_conditions": ['not form["food"]', "True"],
+            "exit_conditions": ['not form["area"]', "True"],
         },
         "ask_area": {
             "mode": "extract_area",
