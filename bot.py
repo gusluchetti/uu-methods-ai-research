@@ -38,27 +38,34 @@ def get_user_input() -> str:
     return "test"
 
 
-# global variables
-dialog_tree = None
-classifier = None
-current_node = "welcome"
-form = {"food": "", "pricerange": "", "area": "", "extra_preference": ""}
-
-
-def start(list_models):
+def start(list_models, optional):
     global classifier, dialog_tree, current_node, classifier, form
+
+    # global variables
+    dialog_tree = None
+    classifier = None
+    current_node = "welcome"
+    form = {"food": "", "pricerange": "", "area": "", "extra_preference": ""}
+
     dialog_tree = lib.create_dialog_tree()
-
-    # showing configurability menu
     settings_dict = lib.create_settings_dict()
-    selected_settings = lib.show_options_menu(settings_dict, "Configure your desired settings", True)
-    settings_dict = enable_settings(settings_dict, selected_settings)
-    # showing model selection menu
     models_dict = lib.create_models_dict(list_models)
-    selected_method = lib.show_options_menu(models_dict, "Select your classification model")
-    classifier = lib.enable_method(models_dict, selected_method)
-    log.debug(classifier)
 
+    if optional == "":  # show menu normally
+        selected_settings = lib.show_options_menu(settings_dict, "Configure your desired settings", True)
+        selected_method = lib.show_options_menu(models_dict, "Select your classification model")
+        # enable based on menu
+        settings_dict = enable_settings(settings_dict, selected_settings)
+        classifier = lib.enable_method(models_dict, selected_method)
+    else:
+        if optional == "A" or optional == "B":
+            classifier = lib.enable_method(models_dict, ('', 1))
+        if optional == "A":  # delayed
+            settings_dict = enable_settings(settings_dict, [('', 2)])
+        if optional == "B":  # not delayed
+            settings_dict = enable_settings(settings_dict, [])
+
+    log.debug(classifier, settings_dict)
     while current_node != "goodbye":
         # FIXME: should only run right before user input is required
         if settings_dict["delayed"]["is_enabled"] is True:

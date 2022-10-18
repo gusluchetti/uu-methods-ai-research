@@ -140,8 +140,9 @@ def create_models_dict(models):
 
 def enable_method(models_dict, selected):
     global classifier
+    log.debug(selected)
     key = list(models_dict)[selected[1]]
-    log.info(f"You've selected model {key}")
+    # log.info(f"You've selected model {key}")
 
     return models_dict[key]["function"]
 

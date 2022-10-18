@@ -160,6 +160,28 @@ def predict_mnb(utterance):
     return return_pred(multinomial_nb.predict(tfidf_ut))
 
 
+global majority_class, keyword_dict
+majority_class = "inform"
+# FIXME: what should we do will 'null' values?
+keyword_dict = {
+    "inform": r"\blooking\b|\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
+    "confirm": r"\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
+    "affirm": r"\byes\b|\byeah\b|\bcorrect\b",
+    "request": r"\bwhat is\b|\bwhats\b|\bmay i\b|\bcould i\b|\bwhat\b|\bprice range\b|\bpost code\b|\btype of\b|\baddress\b|\bphone number\b|\bcan i\b|\bcould i\b|\bcould you\b|\bdo you\b|\bi want+.address\b|\bi want+.phone\b|\bi would\b|\bwhere is\b",
+    "thankyou": r"\bthank you\b",
+    "bye": r"\bgoodbye\b|\bbye\b",
+    "reqalts": r"\bhow about\b|\bwhat about\b|\banything else\b|\bare there\b|\bis there\b|\bwhat else\b",
+    "negate": r"\bno\b|\bnot\b",
+    "hello": r"\bhello\b",
+    "repeat": r"\brepeat\b",
+    "ack": r"\bokay\b|\bkay\b",
+    "restart": r"\bstart\b",
+    "deny": r"\bdont\b",
+    "reqmore": r"\bmore\b",
+    "null": r"__?__",
+}
+
+
 def main():
     """Prepares the dataset, model and runs the bot"""
     global label_dict, tfidf
@@ -212,29 +234,20 @@ def main():
         predict_lr,
         predict_mnb,
     ]
-    bot.start(list_models)
 
+    optional = ""
+    if "A" in sys.argv:
+        optional = "A"
+    if "B" in sys.argv:
+        optional = "B"
 
-global majority_class, keyword_dict
-majority_class = "inform"
-# FIXME: what should we do will 'null' values?
-keyword_dict = {
-    "inform": r"\blooking\b|\blooking for\b|\bdont care\b|\bdoesnt matter\b|\bexpensive\b|\bcheap\b|\bmoderate\b|\bi need\b|\bi want\b|\bfood\b|\bnorth\b",
-    "confirm": r"\bdoes it\b|\bis it\b|\bdo they\b|\bis that\b|\bis there\b",
-    "affirm": r"\byes\b|\byeah\b|\bcorrect\b",
-    "request": r"\bwhat is\b|\bwhats\b|\bmay i\b|\bcould i\b|\bwhat\b|\bprice range\b|\bpost code\b|\btype of\b|\baddress\b|\bphone number\b|\bcan i\b|\bcould i\b|\bcould you\b|\bdo you\b|\bi want+.address\b|\bi want+.phone\b|\bi would\b|\bwhere is\b",
-    "thankyou": r"\bthank you\b",
-    "bye": r"\bgoodbye\b|\bbye\b",
-    "reqalts": r"\bhow about\b|\bwhat about\b|\banything else\b|\bare there\b|\bis there\b|\bwhat else\b",
-    "negate": r"\bno\b|\bnot\b",
-    "hello": r"\bhello\b",
-    "repeat": r"\brepeat\b",
-    "ack": r"\bokay\b|\bkay\b",
-    "restart": r"\bstart\b",
-    "deny": r"\bdont\b",
-    "reqmore": r"\bmore\b",
-    "null": r"__?__",
-}
+    if "experiment" in sys.argv:
+        for i in range(5):
+            print(f"\nRun {i+1}")
+            bot.start(list_models, optional)
+    else:
+        bot.start(list_models, optional)
+
 
 if __name__ == "__main__":
     # HACK: weird fix for num expr complaining about unset thread number
