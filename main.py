@@ -194,19 +194,19 @@ def main():
     df_file = data_path + "df.csv"
 
     if os.path.exists(df_file) and "reprocess" not in sys.argv:
-        print("Found existing processed dataframe! Using it instead...")
+        log.debug("Found existing processed dataframe! Using it instead...")
         df = pd.read_csv(df_file)
     else:
-        print("Building and processing dataframe from scratch.")
+        log.debug("Building and processing dataframe from scratch.")
         df = get_dataset(source_data)
-        print(f"Dataset loaded into Dataframe! \n {df.describe()}")
+        log.debug(f"Dataset loaded into Dataframe! \n {df.describe()}")
 
         df_proc = preprocess(df)
         df = df_proc.copy()
-        print(f"\nDataframe after processing: \n {df.describe()}")
+        log.debug(f"\nDataframe after processing: \n {df.describe()}")
 
         df.to_csv(df_file, index=False)
-        print("Processed dataframe saved as .csv! \n")
+        log.debug("Processed dataframe saved as .csv! \n")
 
     label_dict = build_label_dict(df)
     X_train, X_test, y_train, y_test = make_train_test_split(df)
@@ -222,7 +222,7 @@ def main():
     else:
         multinomial_nb = train_NB_classifier_model(X_train, y_train)
 
-    print("Models have been fit! Saving them for future use... \n")
+    log.debug("Models have been fit! Saving them for future use... \n")
     pickle.dump(logistic_regression, open(models_path + "lr.sav", "wb"))
     pickle.dump(multinomial_nb, open(models_path + "mnb.sav", "wb"))
 
