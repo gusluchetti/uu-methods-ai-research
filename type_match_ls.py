@@ -71,16 +71,22 @@ def extract_area(user_utt):
     location = ""
     locations = [
         "any",
+        "anywhere",
         "north",
         "east",
         "west",
         "south",
-        "centre"
+        "centre",
+        "center"
     ]
     location_index = -3
     for local in locations:
         if local in user_utt:
             location_index = user_utt.index(local)
+            if local == "center":
+                local = "centre"
+            if local == "anywhere":
+                local = "any"
             location = local
 
     # If no keyword was matched, look at positions in user_utt where you would

@@ -34,7 +34,6 @@ def enable_settings(s_dict, selected):
 
 # modify sys_utt if any settings call for it
 def get_sys_utt(sys_utt, settings_dict):
-    sys_utt = sys_utt.lower()
     if settings_dict["loud"]["is_enabled"]:
         sys_utt = sys_utt.upper()
     if settings_dict["voice_assistant"]["is_enabled"]:
@@ -50,7 +49,7 @@ def get_user_input(sys_utt, settings_dict):
     # NOTE: this also calls get_sys_utt based on settings
     user_utt = input(get_sys_utt(sys_utt, settings_dict))
     if settings_dict["delayed"]["is_enabled"]:
-        time.sleep(1.5)
+        time.sleep(4)
     label = classifier(user_utt)
     log.debug(f"Classified utterance as {label}")
 

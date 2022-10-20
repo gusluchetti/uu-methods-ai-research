@@ -42,7 +42,7 @@ def create_dialog_tree():
         "test_pricerange": {
             "mode": "test",
             "sys_utt": "",
-            "exits": ["ask_pricerange", "ask_extra_preference"],
+            "exits": ["ask_pricerange", "test_extra_preference"],
             "exit_conditions": ['not form["pricerange"]', "True"],
         },
         "ask_pricerange": {
@@ -50,6 +50,12 @@ def create_dialog_tree():
             "sys_utt": "How pricy you want the food to be?\n",
             "exits": ["ask_pricerange", "test_pricerange"],
             "exit_conditions": ['not form["pricerange"]', "True"],
+        },
+        "test_extra_preference": {
+            "mode": "test",
+            "sys_utt": "",
+            "exits": ["ask_extra_preference", "confirm_choice"],
+            "exit_conditions": ['not form["extra_preference"]', "True"],
         },
         "ask_extra_preference": {
             "mode": "extract_extra_preference",
