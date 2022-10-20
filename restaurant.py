@@ -9,7 +9,7 @@ extra_preference = ""
 recommendations = pd.DataFrame([])
 restaurants = pd.read_csv(r"datasets/restaurant_info.csv")
 
-food_quality = ["bad food", "okay food", "good food"]
+food_quality = ["bad", "okay", "good"]
 crowdedness = ["not busy", "busy"]
 length_of_stay = ["short", "normal", "long"]
 
