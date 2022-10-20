@@ -160,61 +160,6 @@ def predict_mnb(utterance):
     return return_pred(multinomial_nb.predict(tfidf_ut))
 
 
-def main():
-    """Prepares the dataset, model and runs the bot"""
-    global label_dict, tfidf
-    global logistic_regression, multinomial_nb
-    logistic_regression = None
-    multinomial_nb = None
-
-    data_path = "datasets/"
-    source_data = data_path + "dialog_acts.dat"
-    df_file = data_path + "df.csv"
-
-    if os.path.exists(df_file) and "reprocess" not in sys.argv:
-        print("Found existing processed dataframe! Using it instead...")
-        df = pd.read_csv(df_file)
-    else:
-        print("Building and processing dataframe from scratch.")
-        df = get_dataset(source_data)
-        print(f"Dataset loaded into Dataframe! \n {df.describe()}")
-
-        df_proc = preprocess(df)
-        df = df_proc.copy()
-        print(f"\nDataframe after processing: \n {df.describe()}")
-
-        df.to_csv(df_file, index=False)
-        print("Processed dataframe saved as .csv! \n")
-
-    label_dict = build_label_dict(df)
-    X_train, X_test, y_train, y_test = make_train_test_split(df)
-
-    models_path = "models/"
-    if "remodel" not in sys.argv and os.path.exists(models_path + "lr.sav"):
-        logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
-    else:
-        logistic_regression = train_logistic_regression_model(X_train, y_train)
-
-    if "remodel" not in sys.argv and os.path.exists(models_path + "mnb.sav"):
-        multinomial_nb = pickle.load(open(models_path + "mnb.sav", "rb"))
-    else:
-        multinomial_nb = train_NB_classifier_model(X_train, y_train)
-
-    print("Models have been fit! Saving them for future use... \n")
-    pickle.dump(logistic_regression, open(models_path + "lr.sav", "wb"))
-    pickle.dump(multinomial_nb, open(models_path + "mnb.sav", "wb"))
-
-    # the following functions have a single string as their argument
-    # and return a label as a classification prediction
-    list_models = [
-        get_majority_class,
-        single_keyword_matching,
-        predict_lr,
-        predict_mnb,
-    ]
-    bot.start(list_models)
-
-
 global majority_class, keyword_dict
 majority_class = "inform"
 # FIXME: what should we do will 'null' values?
@@ -235,6 +180,74 @@ keyword_dict = {
     "reqmore": r"\bmore\b",
     "null": r"__?__",
 }
+
+
+def main():
+    """Prepares the dataset, model and runs the bot"""
+    global label_dict, tfidf
+    global logistic_regression, multinomial_nb
+    logistic_regression = None
+    multinomial_nb = None
+
+    data_path = "datasets/"
+    source_data = data_path + "dialog_acts.dat"
+    df_file = data_path + "df.csv"
+
+    if os.path.exists(df_file) and "reprocess" not in sys.argv:
+        log.debug("Found existing processed dataframe! Using it instead...")
+        df = pd.read_csv(df_file)
+    else:
+        log.debug("Building and processing dataframe from scratch.")
+        df = get_dataset(source_data)
+        log.debug(f"Dataset loaded into Dataframe! \n {df.describe()}")
+
+        df_proc = preprocess(df)
+        df = df_proc.copy()
+        log.debug(f"\nDataframe after processing: \n {df.describe()}")
+
+        df.to_csv(df_file, index=False)
+        log.debug("Processed dataframe saved as .csv! \n")
+
+    label_dict = build_label_dict(df)
+    X_train, X_test, y_train, y_test = make_train_test_split(df)
+
+    models_path = "models/"
+    if "remodel" not in sys.argv and os.path.exists(models_path + "lr.sav"):
+        logistic_regression = pickle.load(open(models_path + "lr.sav", "rb"))
+    else:
+        logistic_regression = train_logistic_regression_model(X_train, y_train)
+
+    if "remodel" not in sys.argv and os.path.exists(models_path + "mnb.sav"):
+        multinomial_nb = pickle.load(open(models_path + "mnb.sav", "rb"))
+    else:
+        multinomial_nb = train_NB_classifier_model(X_train, y_train)
+
+    log.debug("Models have been fit! Saving them for future use... \n")
+    pickle.dump(logistic_regression, open(models_path + "lr.sav", "wb"))
+    pickle.dump(multinomial_nb, open(models_path + "mnb.sav", "wb"))
+
+    # the following functions have a single string as their argument
+    # and return a label as a classification prediction
+    list_models = [
+        get_majority_class,
+        single_keyword_matching,
+        predict_lr,
+        predict_mnb,
+    ]
+
+    optional = ""
+    if "A" in sys.argv:
+        optional = "A"
+    if "B" in sys.argv:
+        optional = "B"
+
+    if "experiment" in sys.argv:
+        for i in range(5):
+            print(f"\nRun {i+1}")
+            bot.start(list_models, optional)
+    else:
+        bot.start(list_models, optional)
+
 
 if __name__ == "__main__":
     # HACK: weird fix for num expr complaining about unset thread number

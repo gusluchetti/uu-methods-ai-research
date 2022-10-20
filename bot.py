@@ -1,5 +1,6 @@
 import logging
 import time
+import pyttsx3
 
 # local imports
 import type_match_ls as ls
@@ -7,6 +8,7 @@ import restaurant
 import lib
 
 log = logging.getLogger(__name__)
+engine = pyttsx3.init()
 
 
 def reset_form():
@@ -23,9 +25,6 @@ def enable_settings(s_dict, selected):
 
     # any setting that modifies aspects of the state system
     for k, v in dialog_tree.items():
-        if s_dict["loud"]["is_enabled"]:
-            # FIXME: this doesnt consider recommendations msgs
-            v["sys_utt"] = v["sys_utt"].upper()
         if s_dict["enable_restart"]["is_enabled"] and v["mode"] != "test":
             v["exits"].insert(0, "welcome")
             v["exit_conditions"].insert(0, '"restart" in user_utt')
@@ -33,50 +32,71 @@ def enable_settings(s_dict, selected):
     return s_dict
 
 
-# called whenever user response is necessary
-def get_user_input() -> str:
-    return "test"
+# modify sys_utt if any settings call for it
+def get_sys_utt(sys_utt, settings_dict):
+    if settings_dict["loud"]["is_enabled"]:
+        sys_utt = sys_utt.upper()
+    if settings_dict["voice_assistant"]["is_enabled"]:
+        engine.say(sys_utt)
+        engine.runAndWait()
+
+    return sys_utt
 
 
-# global variables
-dialog_tree = None
-classifier = None
-current_node = "welcome"
-form = {"food": "", "pricerange": "", "area": "", "extra_preference": ""}
+# get sys_utt and check if delayed option is set
+# returns label and user_utt
+def get_user_input(sys_utt, settings_dict):
+    # NOTE: this also calls get_sys_utt based on settings
+    user_utt = input(get_sys_utt(sys_utt, settings_dict))
+    if settings_dict["delayed"]["is_enabled"]:
+        time.sleep(4)
+    label = classifier(user_utt)
+    log.debug(f"Classified utterance as {label}")
+
+    return label, user_utt
 
 
-def start(list_models):
+def start(list_models, optional):
     global classifier, dialog_tree, current_node, classifier, form
-    dialog_tree = lib.create_dialog_tree()
 
-    # showing configurability menu
+    # global variables
+    dialog_tree = None
+    classifier = None
+    current_node = "welcome"
+    form = {"food": "", "pricerange": "", "area": "", "extra_preference": ""}
+
+    dialog_tree = lib.create_dialog_tree()
     settings_dict = lib.create_settings_dict()
-    selected_settings = lib.show_options_menu(settings_dict, "Configure your desired settings", True)
-    settings_dict = enable_settings(settings_dict, selected_settings)
-    # showing model selection menu
     models_dict = lib.create_models_dict(list_models)
-    selected_method = lib.show_options_menu(models_dict, "Select your classification model")
-    classifier = lib.enable_method(models_dict, selected_method)
-    log.debug(classifier)
+
+    if optional == "":  # show menu normally
+        selected_settings = lib.show_options_menu(settings_dict, "Configure your desired settings", True)
+        selected_method = lib.show_options_menu(models_dict, "Select your classification model")
+        # enable based on menu
+        settings_dict = enable_settings(settings_dict, selected_settings)
+        classifier = lib.enable_method(models_dict, selected_method)
+    else:
+        if optional == "A" or optional == "B":
+            classifier = lib.enable_method(models_dict, ('', 1))
+        if optional == "A":  # delayed
+            settings_dict = enable_settings(settings_dict, [('', 2)])
+        if optional == "B":  # not delayed
+            settings_dict = enable_settings(settings_dict, [])
+    log.debug(classifier, settings_dict)
 
     while current_node != "goodbye":
-        # FIXME: should only run right before user input is required
-        if settings_dict["delayed"]["is_enabled"] is True:
-            time.sleep(0.3)
-
         mode = dialog_tree[current_node]["mode"]
         sys_utt = dialog_tree[current_node]["sys_utt"]
         exits = dialog_tree[current_node]["exits"]
         conditions = dialog_tree[current_node]["exit_conditions"]
+
         log.debug(f"\nCurrent Node: {current_node}\nMode: {mode}")
         log.debug(f"\nExits: {exits}\nConditions: {conditions}\nForm: {form}")
 
         mode_split = mode.split("_", maxsplit=1)
-        if mode_split[0] in ["ask", "extract", "welcome"]:
-            user_utt = input(sys_utt).lower()
-            label = classifier(user_utt)
-            log.debug(f"classified utterance as {label}")
 
+        if mode_split[0] in ["ask", "extract", "welcome"]:
+            label, user_utt = get_user_input(sys_utt, settings_dict)
             if mode == "welcome":
                 reset_form()
                 form["food"] = ls.extract_food(user_utt)
@@ -89,9 +109,7 @@ def start(list_models):
 
         if mode == "confirm":
             sys_utt = lib.get_confirmation_msg(form)
-            user_utt = input(sys_utt)
-            label = classifier(user_utt)
-            log.debug(f"classified utterance as {label}")
+            label, user_utt = get_user_input(sys_utt, settings_dict)
             restaurant.set_recommendations(form)
 
         elif mode == "suggest":
@@ -100,12 +118,10 @@ def start(list_models):
             sys_utt = f"Found {len(recommendations)} matching restaurant(s).\n" + sys_utt
 
             if recommendations.empty:
-                print(sys_utt)
+                print(get_sys_utt(sys_utt, settings_dict))
                 label = "null"
             else:
-                user_utt = input(sys_utt).lower()
-                label = classifier(user_utt)
-                log.debug(f"classified utterance as {label}")
+                label, user_utt = get_user_input(sys_utt, settings_dict)
                 restaurant.drop_recommendation(index)
 
         # evaluate exit conditions
@@ -118,4 +134,4 @@ def start(list_models):
                 break
 
         current_node = next_node
-    print("Goodbye! Thanks for using our bot!")
+    print(get_sys_utt("Goodbye! Thanks for using our bot!", settings_dict))
