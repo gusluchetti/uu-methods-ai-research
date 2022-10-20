@@ -50,10 +50,10 @@ def get_user_input(sys_utt, settings_dict):
     user_utt = input(get_sys_utt(sys_utt, settings_dict))
     if settings_dict["delayed"]["is_enabled"]:
         time.sleep(4)
-    label = classifier(user_utt)
+    label = classifier(user_utt.lower())
     log.debug(f"Classified utterance as {label}")
 
-    return label, user_utt.lower()
+    return label, user_utt
 
 
 def start(list_models, optional):
