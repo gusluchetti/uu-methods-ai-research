@@ -53,7 +53,7 @@ def get_user_input(sys_utt, settings_dict):
     label = classifier(user_utt)
     log.debug(f"Classified utterance as {label}")
 
-    return label, user_utt
+    return label, user_utt.lower()
 
 
 def start(list_models, optional):
