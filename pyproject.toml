@@ -9,7 +9,7 @@ packages = [{include = "uu_methods_ai_research"}]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 pandas = "^1.5.0"
-scipy = "^1.9.1"
+scipy = "^1.10.0"
 sklearn = "^0.0"
 Levenshtein = "^0.20.3"
 pytest = "^7.1.3"
